@@ -1,0 +1,33 @@
+.idea/
+venv
+# Python / Django
+venv/
+venv_new/
+env/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Environment variables / secrets
+.env
+*.env
+
+# Database locale
+db.sqlite3
+*.sqlite3
+
+# Logs / crash files
+*.log
+hs_err_pid*.log
+
+# VS Code
+.vscode/
+
+# Django generated files
+staticfiles/
+media/
+
+# Tests/cache
+.pytest_cache/
+.mypy_cache/
