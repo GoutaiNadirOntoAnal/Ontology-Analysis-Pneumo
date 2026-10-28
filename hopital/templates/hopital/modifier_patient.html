@@ -1,0 +1,122 @@
+{% extends 'main.html' %}
+{% load static %}
+
+{% block title %}Modifier une règle{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <span class="eyebrow"><i class="ri-edit-2-line"></i> Ontologie</span>
+        <h1 class="page-title">Modifier la règle</h1>
+        <p class="page-subtitle">
+            Règle : <strong>{{ rule.name }}</strong>
+        </p>
+    </div>
+
+    <div class="action-group">
+        <a href="{% url 'ontology_rules' %}" class="btn btn-outline-primary">Retour aux règles</a>
+    </div>
+</div>
+
+<div class="content-card mb-4">
+    <h2 class="section-title">Règle actuelle</h2>
+    <div class="clinical-field">
+        {{ rule.text }}
+    </div>
+</div>
+
+<div class="content-card">
+    <h2 class="section-title">Nouvelle définition</h2>
+    <p class="help-text">
+        Modifiez la pathologie suggérée et les critères cliniques de la règle.
+    </p>
+
+    <form method="post" class="mt-4">
+        {% csrf_token %}
+
+        <div class="mb-3">
+            <label class="form-label">Diagnostic ou pathologie à suggérer</label>
+            <input type="text" name="pathologie" class="form-control"
+                   value="{{ rule.pathologie }}" placeholder="Exemple : Asthme" required>
+        </div>
+
+        <h3 class="section-title mt-4">Conditions cliniques</h3>
+
+        <div id="conditions-wrapper">
+            {% if rule.conditions %}
+                {% for cond in rule.conditions %}
+                <div class="row g-3 condition-row mb-2">
+                    <div class="col-md-4">
+                        <select name="condition_property" class="form-control" required>
+                            <option value="">Type de critère</option>
+                            {% for value, label in condition_choices %}
+                                <option value="{{ value }}" {% if value == cond.prop %}selected{% endif %}>
+                                    {{ label }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-7">
+                        <input type="text" name="condition_value" class="form-control"
+                               value="{{ cond.value }}" required>
+                    </div>
+                    <div class="col-md-1">
+                        <button type="button" class="btn btn-outline-danger w-100"
+                                onclick="removeCondition(this)">×</button>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="row g-3 condition-row mb-2">
+                    <div class="col-md-4">
+                        <select name="condition_property" class="form-control" required>
+                            <option value="">Type de critère</option>
+                            {% for value, label in condition_choices %}
+                                <option value="{{ value }}">{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-7">
+                        <input type="text" name="condition_value" class="form-control"
+                               placeholder="Exemple : Dyspnée" required>
+                    </div>
+                    <div class="col-md-1">
+                        <button type="button" class="btn btn-outline-danger w-100"
+                                onclick="removeCondition(this)">×</button>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center mt-3 flex-wrap gap-2">
+            <button type="button" class="btn btn-outline-primary" onclick="addCondition()">
+                + Ajouter une condition
+            </button>
+
+            <div class="d-flex gap-2 flex-wrap">
+                <a href="{% url 'ontology_rules' %}" class="btn btn-outline-secondary">Annuler</a>
+                <button type="submit" class="btn btn-primary">Enregistrer les modifications</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+function addCondition(){
+    const wrapper = document.getElementById('conditions-wrapper');
+    const first = wrapper.querySelector('.condition-row');
+    const clone = first.cloneNode(true);
+    clone.querySelectorAll('input, select').forEach(el => el.value = '');
+    wrapper.appendChild(clone);
+}
+
+function removeCondition(btn){
+    const rows = document.querySelectorAll('.condition-row');
+    if(rows.length <= 1){
+        rows[0].querySelectorAll('input, select').forEach(el => el.value = '');
+        return;
+    }
+    btn.closest('.condition-row').remove();
+}
+</script>
+{% endblock %}

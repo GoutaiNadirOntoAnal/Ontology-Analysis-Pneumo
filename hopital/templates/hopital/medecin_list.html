@@ -1,0 +1,85 @@
+{% extends 'main.html' %}
+{% load static %}
+{% block title %}Liste des médecins{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <span class="eyebrow"><i class="ri-nurse-line"></i> Administration médicale</span>
+        <h1 class="page-title">Liste des médecins</h1>
+        <p class="page-subtitle">
+            Gérez les médecins autorisés à consulter les patients et à utiliser le module d’aide au diagnostic.
+        </p>
+    </div>
+    <div class="action-group">
+        <a class="btn btn-outline-primary" href="{% url 'index' %}">Accueil</a>
+        <a class="btn btn-primary" href="{% url 'create_medecin' %}">Nouveau médecin</a>
+    </div>
+</div>
+
+<section class="content-card mb-4">
+    <form class="search-form" method="GET">
+        <input class="form-control" type="text" name="q" placeholder="Rechercher par nom ou prénom" {% if query %}value="{{ query }}"{% endif %}>
+        <button class="btn btn-primary" type="submit">Rechercher</button>
+        {% if query %}<a href="{% url 'medecin_list' %}" class="btn btn-outline-secondary">Réinitialiser</a>{% endif %}
+    </form>
+</section>
+
+<div class="table-wrapper">
+    <table class="table table-hover align-middle">
+        <thead>
+            <tr>
+                <th>Médecin</th>
+                <th>Spécialité</th>
+                <th>Coordonnées</th>
+                <th>Adresse</th>
+                <th style="width:240px;">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for medecin in resultat_page %}
+            <tr>
+                <td>
+                    <div class="identity-cell">
+                        <span class="doctor-avatar">{{ medecin.nom|first }}{{ medecin.prenom|first }}</span>
+                        <div>
+                            <strong>Dr {{ medecin.nom }} {{ medecin.prenom }}</strong><br>
+                            <small class="text-muted">Compte : {{ medecin.user.username }}</small>
+                        </div>
+                    </div>
+                </td>
+                <td>{{ medecin.specialite }}</td>
+                <td>
+                    <strong>{{ medecin.numero_telephone }}</strong><br>
+                    <small class="text-muted">{{ medecin.adresse_email }}</small>
+                </td>
+                <td>{{ medecin.adresse }}</td>
+                <td>
+                    <div class="d-flex gap-2 flex-wrap">
+                        <a class="btn btn-sm btn-primary" href="{% url 'modifier_medecin' medecin.id %}">Modifier</a>
+                        <form method="post" action="{% url 'supprimer_medecin' medecin.id %}" onsubmit="return confirm('Confirmer la suppression de ce médecin ?');">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-outline-danger">Supprimer</button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" class="text-center py-4">Aucun médecin trouvé.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="d-flex justify-content-center align-items-center gap-3 mt-4">
+    {% if resultat_page.has_previous %}
+        <a class="btn btn-outline-primary" href="?page={{ resultat_page.previous_page_number }}{% if query %}&q={{ query }}{% endif %}">Précédent</a>
+    {% endif %}
+    <span class="fw-bold">Page {{ resultat_page.number }} / {{ resultat_page.paginator.num_pages }}</span>
+    {% if resultat_page.has_next %}
+        <a class="btn btn-outline-primary" href="?page={{ resultat_page.next_page_number }}{% if query %}&q={{ query }}{% endif %}">Suivant</a>
+    {% endif %}
+</div>
+{% endblock %}

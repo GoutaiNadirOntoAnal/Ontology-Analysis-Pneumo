@@ -1,0 +1,304 @@
+{% extends 'main.html' %}
+{% load static %}
+
+{% block title %}Modifier une règle clinique{% endblock %}
+
+{% block content %}
+<style>
+.edit-rule-card{
+    max-width:1100px;
+    margin:0 auto;
+}
+
+.condition-card{
+    background:#fff;
+    border:1px solid #dbe6f0;
+    border-radius:18px;
+    padding:18px !important;
+    margin-bottom:12px;
+}
+
+.form-label-med{
+    font-weight:850;
+    color:#172638;
+    margin-bottom:8px;
+}
+
+.rule-help{
+    background:#f4f9ff;
+    border:1px solid #d6e8fb;
+    border-radius:18px;
+    padding:16px 18px;
+    color:#52677d;
+    line-height:1.65;
+    margin-bottom:20px;
+}
+
+.condition-grid{
+    display:grid;
+    grid-template-columns:minmax(240px, 320px) minmax(360px, 1fr) 52px;
+    gap:16px;
+    align-items:end;
+}
+
+.condition-card .form-control,
+.condition-card .btn{
+    min-height:54px;
+    border-radius:16px !important;
+}
+
+.condition-hint{
+    display:block;
+    color:#6b7a8c;
+    font-size:.88rem;
+    margin-top:7px;
+}
+
+.condition-value:disabled{
+    background:#f3f6fa !important;
+    color:#7a8795 !important;
+    cursor:not-allowed;
+}
+
+@media (max-width: 900px){
+    .condition-grid{
+        grid-template-columns:1fr;
+    }
+}
+</style>
+
+<div class="page-header">
+    <div>
+        <span class="eyebrow"><i class="ri-edit-2-line"></i> Ontologie</span>
+        <h1 class="page-title">Modifier la règle clinique</h1>
+        <p class="page-subtitle">
+            Modifier remplace cette règle dans onto.owl, sans créer de doublon.
+        </p>
+    </div>
+
+    <div class="action-group">
+        <a href="{% url 'ontology_rules' %}" class="btn btn-outline-primary">
+            Retour aux règles
+        </a>
+    </div>
+</div>
+
+<div class="content-card edit-rule-card">
+    <div class="alert alert-info">
+        <strong>Important :</strong>
+        si vous changez seulement le nom affiché, l’ontologie n’est pas modifiée.
+        Si vous changez les critères, la même règle est remplacée dans onto.owl.
+    </div>
+
+    <div class="rule-help">
+        La règle garde la maladie réelle de l’ontologie.
+        Le nom affiché sert seulement au tableau de l’interface.
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+
+        <div class="mb-4">
+            <label class="form-label-med">Maladie réelle dans l’ontologie</label>
+            <input type="hidden" name="pathologie" value="{{ rule.pathologie }}">
+            <input type="text" class="form-control" value="{{ rule.pathologie }}" readonly>
+            <small class="condition-hint">
+                Identifiant réel utilisé dans la règle SWRL.
+            </small>
+        </div>
+
+        <div class="mb-4">
+            <label class="form-label-med">Nom affiché dans le tableau</label>
+            <input type="text" name="pathologie_display_name" class="form-control"
+                   value="{{ rule.pathologie_display }}"
+                   placeholder="Exemple : Asthme sévère">
+            <small class="condition-hint">
+                Ce champ modifie seulement l’interface, pas l’ontologie.
+            </small>
+        </div>
+
+        <h2 class="section-title mt-4">Critères cliniques</h2>
+
+        <div id="conditions-wrapper">
+            {% if rule.conditions %}
+                {% for cond in rule.conditions %}
+                <div class="condition-card condition-row">
+                    <div class="condition-grid">
+                        <div>
+                            <label class="form-label-med">Type de critère</label>
+                            <select name="condition_property" class="form-control condition-type" required onchange="updateTermSuggestions(this)">
+                                <option value="">Choisir le type</option>
+                                {% for value, label in condition_choices %}
+                                    <option value="{{ value }}" {% if value == cond.prop %}selected{% endif %}>
+                                        {{ label }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="form-label-med">Terme clinique</label>
+                            <select name="condition_value" class="form-control condition-value"
+                                    data-current-value="{{ cond.value }}" required>
+                                <option value="{{ cond.value }}">{{ cond.value }}</option>
+                            </select>
+                            <small class="condition-hint">
+                                Sélection obligatoire depuis l’ontologie/règles existantes.
+                            </small>
+                        </div>
+
+                        <div>
+                            <button type="button" class="btn btn-outline-danger w-100"
+                                    onclick="removeCondition(this)" title="Supprimer ce critère">
+                                <i class="ri-close-line"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="condition-card condition-row">
+                    <div class="condition-grid">
+                        <div>
+                            <label class="form-label-med">Type de critère</label>
+                            <select name="condition_property" class="form-control condition-type" required onchange="updateTermSuggestions(this)">
+                                <option value="">Choisir le type</option>
+                                {% for value, label in condition_choices %}
+                                    <option value="{{ value }}">{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="form-label-med">Terme clinique</label>
+                            <select name="condition_value" class="form-control condition-value" required disabled>
+                                <option value="">Choisissez d’abord le type</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <button type="button" class="btn btn-outline-danger w-100"
+                                    onclick="removeCondition(this)" title="Supprimer ce critère">
+                                <i class="ri-close-line"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center mt-3 flex-wrap gap-2">
+            <button type="button" class="btn btn-outline-primary" onclick="addCondition()">
+                + Ajouter un critère clinique
+            </button>
+
+            <div class="d-flex gap-2 flex-wrap">
+                <a href="{% url 'ontology_rules' %}" class="btn btn-outline-secondary">
+                    Annuler
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    Enregistrer les modifications
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+const CLINICAL_TERMS = {{ clinical_terms_json|safe }};
+
+function initConditionRow(row){
+    const selectType = row.querySelector('.condition-type');
+    const selectValue = row.querySelector('.condition-value');
+    if(!selectType || !selectValue) return;
+    updateTermSuggestions(selectType);
+}
+
+function updateTermSuggestions(selectType){
+    const row = selectType.closest('.condition-row');
+    const selectValue = row.querySelector('.condition-value');
+    if(!row || !selectValue) return;
+
+    const type = selectType.value;
+    const currentValue = selectValue.dataset.currentValue || selectValue.value || '';
+    const terms = CLINICAL_TERMS[type] || [];
+
+    selectValue.innerHTML = '';
+
+    if(!type){
+        selectValue.disabled = true;
+        selectValue.innerHTML = '<option value="">Choisissez d’abord le type</option>';
+        return;
+    }
+
+    if(!terms.length){
+        selectValue.disabled = true;
+        selectValue.innerHTML = '<option value="">Aucun terme disponible pour ce type</option>';
+        return;
+    }
+
+    selectValue.disabled = false;
+
+    const first = document.createElement('option');
+    first.value = '';
+    first.textContent = 'Sélectionner un terme';
+    selectValue.appendChild(first);
+
+    terms.forEach(term => {
+        const option = document.createElement('option');
+        option.value = term;
+        option.textContent = term;
+        if(term === currentValue){
+            option.selected = true;
+        }
+        selectValue.appendChild(option);
+    });
+
+    if(currentValue && !terms.includes(currentValue)){
+        const option = document.createElement('option');
+        option.value = currentValue;
+        option.textContent = currentValue + ' (valeur actuelle)';
+        option.selected = true;
+        selectValue.appendChild(option);
+    }
+}
+
+function addCondition(){
+    const wrapper = document.getElementById('conditions-wrapper');
+    const first = wrapper.querySelector('.condition-row');
+    const clone = first.cloneNode(true);
+
+    clone.querySelectorAll('select').forEach(el => {
+        el.value = '';
+        if(el.classList.contains('condition-value')){
+            el.dataset.currentValue = '';
+            el.disabled = true;
+            el.innerHTML = '<option value="">Choisissez d’abord le type</option>';
+        }
+    });
+
+    wrapper.appendChild(clone);
+    initConditionRow(clone);
+}
+
+function removeCondition(btn){
+    const rows = document.querySelectorAll('.condition-row');
+    if(rows.length <= 1){
+        const row = rows[0];
+        row.querySelectorAll('select').forEach(el => {
+            el.value = '';
+            if(el.classList.contains('condition-value')){
+                el.dataset.currentValue = '';
+            }
+        });
+        updateTermSuggestions(row.querySelector('.condition-type'));
+        return;
+    }
+    btn.closest('.condition-row').remove();
+}
+
+document.addEventListener('DOMContentLoaded', function(){
+    document.querySelectorAll('.condition-row').forEach(initConditionRow);
+});
+</script>
+{% endblock %}

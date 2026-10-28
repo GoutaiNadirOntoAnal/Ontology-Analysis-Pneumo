@@ -1,0 +1,89 @@
+{% extends 'main.html' %}
+{% load static %}
+{% block title %}Liste des patients{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <span class="eyebrow"><i class="ri-user-heart-line"></i> Gestion des patients</span>
+        <h1 class="page-title">Liste des patients</h1>
+        <p class="page-subtitle">
+            Recherchez un patient, consultez son dossier médical ou ajoutez un nouveau patient à la plateforme.
+        </p>
+    </div>
+    <div class="action-group">
+        <a class="btn btn-outline-primary" href="{% url 'index' %}">Accueil</a>
+        <a class="btn btn-primary" href="{% url 'create_patient' %}">Nouveau patient</a>
+    </div>
+</div>
+
+<section class="content-card mb-4">
+    <div class="toolbar mb-0">
+        <form class="search-form" method="GET">
+            <input class="form-control" type="text" name="q" placeholder="Rechercher par nom ou prénom" {% if query %}value="{{ query }}"{% endif %}>
+            <button class="btn btn-primary" type="submit">Rechercher</button>
+            {% if query %}<a href="{% url 'patient_list' %}" class="btn btn-outline-secondary">Réinitialiser</a>{% endif %}
+        </form>
+    </div>
+</section>
+
+<div class="table-wrapper">
+    <table class="table table-hover align-middle">
+        <thead>
+            <tr>
+                <th>Patient</th>
+                <th>Date de naissance</th>
+                <th>Coordonnées</th>
+                <th>Médecin traitant</th>
+                <th>Adresse</th>
+                <th style="width:240px;">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for patient in resultat_page %}
+            <tr>
+                <td>
+                    <div class="identity-cell">
+                        <span class="patient-avatar">{{ patient.nom|first }}{{ patient.prenom|first }}</span>
+                        <div>
+                            <strong>{{ patient.nom }} {{ patient.prenom }}</strong><br>
+                            <small class="text-muted">Patient n° {{ patient.id }}</small>
+                        </div>
+                    </div>
+                </td>
+                <td>{{ patient.date_naissance }}</td>
+                <td>
+                    <strong>{{ patient.numero_telephone }}</strong><br>
+                    <small class="text-muted">{{ patient.adresse_email }}</small>
+                </td>
+                <td>{{ patient.medecin_traitant|default:"Non assigné" }}</td>
+                <td>{{ patient.adresse }}</td>
+                <td>
+                    <div class="d-flex gap-2 flex-wrap">
+                        <a class="btn btn-sm btn-primary" href="{% url 'patient_detail' patient.id %}">Voir le dossier</a>
+                        <form method="post" action="{% url 'supprimer_patient' patient.id %}" onsubmit="return confirm('Confirmer la suppression de ce patient ?');">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-outline-danger">Supprimer</button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" class="text-center py-4">Aucun patient trouvé.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="d-flex justify-content-center align-items-center gap-3 mt-4">
+    {% if resultat_page.has_previous %}
+        <a class="btn btn-outline-primary" href="?page={{ resultat_page.previous_page_number }}{% if query %}&q={{ query }}{% endif %}">Précédent</a>
+    {% endif %}
+    <span class="fw-bold">Page {{ resultat_page.number }} / {{ resultat_page.paginator.num_pages }}</span>
+    {% if resultat_page.has_next %}
+        <a class="btn btn-outline-primary" href="?page={{ resultat_page.next_page_number }}{% if query %}&q={{ query }}{% endif %}">Suivant</a>
+    {% endif %}
+</div>
+{% endblock %}

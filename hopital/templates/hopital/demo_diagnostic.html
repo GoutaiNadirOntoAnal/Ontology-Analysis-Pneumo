@@ -1,0 +1,405 @@
+{% extends 'main.html' %}
+{% load static %}
+
+{% block title %}Démo diagnostic{% endblock %}
+
+{% block content %}
+<style>
+.demo-wrap {
+    max-width: 1100px;
+    margin: 35px auto;
+    padding: 25px;
+}
+.demo-hero {
+    background: linear-gradient(135deg, #eaf5ff, #ffffff);
+    border: 1px solid #d8e9ff;
+    border-radius: 24px;
+    padding: 28px;
+    box-shadow: 0 12px 32px rgba(20, 80, 150, .10);
+    margin-bottom: 22px;
+}
+.demo-title {
+    color: #0b477f;
+    font-size: 32px;
+    font-weight: 800;
+    margin-bottom: 8px;
+}
+.demo-subtitle {
+    color: #64748b;
+    font-size: 17px;
+    line-height: 1.6;
+}
+.demo-card {
+    background: #fff;
+    border-radius: 22px;
+    border: 1px solid #e5eef8;
+    box-shadow: 0 8px 25px rgba(0,0,0,.06);
+    padding: 24px;
+    margin-bottom: 22px;
+}
+.demo-label {
+    font-weight: 800;
+    color: #12345a;
+    margin-bottom: 8px;
+    display: block;
+}
+.demo-select {
+    width: 100%;
+    padding: 14px 16px;
+    border-radius: 14px;
+    border: 1px solid #cbdff5;
+    font-size: 16px;
+    outline: none;
+    background: white;
+}
+.demo-text {
+    white-space: pre-wrap;
+    background: #f8fbff;
+    border: 1px solid #dcecff;
+    border-radius: 16px;
+    padding: 18px;
+    margin-top: 16px;
+    line-height: 1.7;
+    color: #0f172a;
+}
+.demo-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 18px;
+}
+.demo-btn {
+    border: none;
+    border-radius: 14px;
+    padding: 13px 22px;
+    font-size: 16px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: .2s;
+}
+.demo-btn-primary {
+    background: linear-gradient(135deg, #1473d2, #0b57b3);
+    color: white;
+}
+.demo-btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 18px rgba(20, 115, 210, .25);
+}
+.demo-btn-primary:disabled {
+    opacity: .65;
+    cursor: not-allowed;
+}
+.demo-note {
+    font-size: 14px;
+    color: #64748b;
+    margin-top: 10px;
+}
+.result-title {
+    color: #6c3483;
+    font-size: 24px;
+    font-weight: 800;
+    margin-bottom: 14px;
+}
+.best-box {
+    border-left: 6px solid #e74c3c;
+    background: #fff9f9;
+}
+.score-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+.score-table th {
+    background: #f0f4f8;
+    color: #333;
+    padding: 10px 12px;
+    text-align: left;
+    border-bottom: 2px solid #ddd;
+}
+.score-table td {
+    padding: 9px 12px;
+    border-bottom: 1px solid #f0f0f0;
+}
+.score-bar-wrap {
+    background: #e9ecef;
+    border-radius: 20px;
+    height: 10px;
+    min-width: 120px;
+}
+.score-bar {
+    height: 10px;
+    border-radius: 20px;
+    background: linear-gradient(90deg, #2a9df4, #1f78d1);
+}
+.score-bar.top {
+    background: linear-gradient(90deg, #e74c3c, #c0392b);
+}
+.badge-best {
+    background: #e74c3c;
+    color: white;
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 20px;
+    margin-left: 8px;
+}
+.corr-item {
+    font-size: 14px;
+    padding: 8px 0;
+    border-bottom: 1px dashed #d3e0ee;
+}
+.corr-orig {
+    color: #c0392b;
+    text-decoration: line-through;
+}
+.corr-fixed {
+    color: #1abc9c;
+    font-weight: 700;
+}
+.corr-type {
+    font-size: 12px;
+    background: #e0f7fa;
+    color: #006064;
+    padding: 2px 7px;
+    border-radius: 10px;
+    margin-left: 6px;
+}
+.spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 3px solid rgba(255,255,255,.4);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin .7s linear infinite;
+    margin-right: 6px;
+    vertical-align: middle;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.entity-chip {
+    background: #f0f4ff;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 13px;
+    margin: 3px;
+    display: inline-block;
+    border: 1px solid #ccd;
+}
+.hidden { display: none; }
+</style>
+
+<div class="demo-wrap">
+    <div class="demo-hero">
+        <div class="demo-title">🩺 Démonstration d’aide au diagnostic</div>
+        <div class="demo-subtitle">
+            Cette page est destinée aux testeurs. Aucun patient n’est sélectionné, aucun diagnostic n’est enregistré.
+            Le testeur choisit seulement un exemple clinique puis clique sur analyser.
+        </div>
+    </div>
+
+    <div class="demo-card">
+        {% csrf_token %}
+
+        <label class="demo-label" for="exampleSelect">Choisir un exemple clinique</label>
+        <select class="demo-select" id="exampleSelect" onchange="showExampleText()">
+            <option value="">-- Sélectionner un exemple --</option>
+            {% for ex in examples %}
+                <option value="{{ ex.id }}">{{ ex.titre }}</option>
+            {% endfor %}
+        </select>
+
+        <div class="demo-text hidden" id="exampleText"></div>
+
+        <div class="demo-actions">
+            <button type="button" class="demo-btn demo-btn-primary" id="analyzeBtn" onclick="analyzeDemo()" disabled>
+                🔍 Analyser l’exemple
+            </button>
+        </div>
+
+        <div class="demo-note">
+            Texte non modifiable : le testeur ne tape rien. Il sélectionne seulement un exemple.
+        </div>
+    </div>
+
+    <div id="resultArea" class="hidden">
+        <div class="demo-card best-box" id="bestCard" style="display:none;">
+            <h3 style="color:#c0392b;margin-bottom:12px;">🏆 Diagnostic suggéré</h3>
+            <div style="font-size:24px;font-weight:800;color:#c0392b;" id="bestPatho"></div>
+            <div style="font-size:15px;color:#555;margin-top:5px;" id="bestScore"></div>
+        </div>
+
+        <div class="demo-card" id="corrCard" style="display:none;">
+            <h3 style="color:#17a2b8;margin-bottom:12px;">✏️ Corrections appliquées</h3>
+            <p id="corrResume" style="font-size:14px;color:#555;"></p>
+            <div id="corrList"></div>
+        </div>
+
+        <div class="demo-card" id="scoresCard" style="display:none;">
+            <h3 style="color:#e67e22;margin-bottom:12px;">📊 Scores des diagnostics</h3>
+            <table class="score-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Pathologie</th>
+                        <th>Score</th>
+                        <th style="min-width:150px;">Barre</th>
+                    </tr>
+                </thead>
+                <tbody id="scoresBody"></tbody>
+            </table>
+        </div>
+
+        <div class="demo-card">
+            <h3 class="result-title">🔬 Texte annoté</h3>
+            <div id="annotatedText" style="line-height:2.2;font-size:16px;padding:12px;border:1px solid #eee;border-radius:8px;"></div>
+        </div>
+
+        <div class="demo-card">
+            <h3 class="result-title">🏷 Entités détectées</h3>
+            <div id="entitiesBox"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+const EXAMPLES = {
+{% for ex in examples %}
+    "{{ ex.id }}": {
+        titre: "{{ ex.titre|escapejs }}",
+        maladie_attendue: "{{ ex.maladie_attendue|escapejs }}",
+        texte: "{{ ex.texte|escapejs }}"
+    }{% if not forloop.last %},{% endif %}
+{% endfor %}
+};
+
+function escapeH(s) {
+    return String(s || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+}
+
+function showExampleText() {
+    const id = document.getElementById('exampleSelect').value;
+    const box = document.getElementById('exampleText');
+    const btn = document.getElementById('analyzeBtn');
+
+    document.getElementById('resultArea').classList.add('hidden');
+
+    if (!id || !EXAMPLES[id]) {
+        box.classList.add('hidden');
+        box.textContent = '';
+        btn.disabled = true;
+        return;
+    }
+
+    box.textContent = EXAMPLES[id].texte;
+    box.classList.remove('hidden');
+    btn.disabled = false;
+}
+
+async function analyzeDemo() {
+    const id = document.getElementById('exampleSelect').value;
+    if (!id) return;
+
+    const btn = document.getElementById('analyzeBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span>Analyse en cours...';
+
+    try {
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+        const resp = await fetch("{% url 'demo_analyser_api' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken,
+            },
+            body: JSON.stringify({example_id: id}),
+        });
+
+        const data = await resp.json();
+
+        if (!resp.ok || data.error) {
+            throw new Error(data.error || 'Erreur serveur.');
+        }
+
+        renderResult(data);
+
+    } catch (e) {
+        alert(e.message || e);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '🔍 Analyser l’exemple';
+    }
+}
+
+function renderResult(data) {
+    document.getElementById('resultArea').classList.remove('hidden');
+
+    const best = data.meilleur_diagnostic;
+    if (best) {
+        document.getElementById('bestCard').style.display = 'block';
+        document.getElementById('bestPatho').textContent = best.pathologie || '';
+        document.getElementById('bestScore').textContent = best.score ? `Score : ${best.score}%` : '';
+    } else {
+        document.getElementById('bestCard').style.display = 'none';
+    }
+
+    const corr = data.correction || {};
+    if (corr && corr.a_des_erreurs) {
+        document.getElementById('corrCard').style.display = 'block';
+        document.getElementById('corrResume').textContent = corr.resume || '';
+
+        let html = '';
+        if (corr.texte_corrige) {
+            html += `<div class="corr-item"><strong>Texte corrigé :</strong> <span class="corr-fixed">${escapeH(corr.texte_corrige)}</span></div>`;
+        }
+
+        const corrections = corr.corrections || [];
+        corrections.forEach(c => {
+            html += `<div class="corr-item">
+                <span class="corr-orig">${escapeH(c.original || '')}</span>
+                → <span class="corr-fixed">${escapeH(c.corrige || '')}</span>
+                <span class="corr-type">${escapeH(c.type || '')}</span>
+                <small style="color:#888;margin-left:6px;">${escapeH(c.explication || '')}</small>
+            </div>`;
+        });
+
+        document.getElementById('corrList').innerHTML = html;
+    } else {
+        document.getElementById('corrCard').style.display = 'none';
+    }
+
+    const scores = data.scores_regles || [];
+    if (scores.length) {
+        document.getElementById('scoresCard').style.display = 'block';
+        let rows = '';
+        scores.forEach((r, i) => {
+            const score = Number(r.score || 0);
+            rows += `<tr>
+                <td><strong>${i + 1}</strong></td>
+                <td>${escapeH(r.pathologie || '')}${i === 0 ? '<span class="badge-best">★ Meilleur</span>' : ''}</td>
+                <td><strong>${score}%</strong></td>
+                <td><div class="score-bar-wrap"><div class="score-bar ${i === 0 ? 'top' : ''}" style="width:${score}%;"></div></div></td>
+            </tr>`;
+        });
+        document.getElementById('scoresBody').innerHTML = rows;
+    } else {
+        document.getElementById('scoresCard').style.display = 'none';
+    }
+
+    document.getElementById('annotatedText').innerHTML = data.diagnostic_surligne || '';
+
+    const entites = (data.analyse_nlp && data.analyse_nlp.entites) ? data.analyse_nlp.entites : [];
+    if (entites.length) {
+        let entHtml = '';
+        entites.forEach(e => {
+            entHtml += `<span class="entity-chip">${escapeH(e.texte)} <small>[${escapeH(e.label)}]</small></span>`;
+        });
+        document.getElementById('entitiesBox').innerHTML = entHtml;
+    } else {
+        document.getElementById('entitiesBox').innerHTML = '<p style="color:#888;">Aucune entité détectée.</p>';
+    }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,86 @@
+{% extends 'main.html' %}
+{% load static %}
+{% block title %}Nouveau patient{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <span class="eyebrow"><i class="ri-user-add-line"></i> Gestion des patients</span>
+        <h1 class="page-title">Nouveau patient</h1>
+        <p class="page-subtitle">Créez le compte patient et rattachez-le à un médecin traitant.</p>
+    </div>
+    <a class="btn btn-outline-primary" href="{% url 'patient_list' %}">Retour à la liste</a>
+</div>
+
+<section class="form-section">
+    <form action="{% url 'create_patient' %}" method="POST">
+        {% csrf_token %}
+        <div class="form-grid">
+            <div>
+                <label class="form-label" for="username">Nom d'utilisateur</label>
+                <input type="text" id="username" name="username" class="form-control" required placeholder="Identifiant de connexion">
+                {{ form.username.errors }}
+            </div>
+            <div>
+                <label class="form-label" for="password">Mot de passe</label>
+                <input type="password" id="password" name="password" class="form-control" required placeholder="Mot de passe du patient">
+                {{ form.password.errors }}
+            </div>
+            <div>
+                <label class="form-label" for="nom">Nom</label>
+                <input type="text" id="nom" name="nom" class="form-control" required value="{{ form.nom.value|default:'' }}">
+                {{ form.nom.errors }}
+            </div>
+            <div>
+                <label class="form-label" for="prenom">Prénom</label>
+                <input type="text" id="prenom" name="prenom" class="form-control" required value="{{ form.prenom.value|default:'' }}">
+                {{ form.prenom.errors }}
+            </div>
+            <div>
+                <label class="form-label" for="sexe">Sexe</label>
+                <select id="sexe" name="sexe" class="form-select" required>
+                    <option value="" disabled {% if not form.sexe.value %}selected{% endif %}>Sélectionner</option>
+                    <option value="M" {% if form.sexe.value == 'M' %}selected{% endif %}>Homme</option>
+                    <option value="F" {% if form.sexe.value == 'F' %}selected{% endif %}>Femme</option>
+                </select>
+                {{ form.sexe.errors }}
+            </div>
+            <div>
+                <label class="form-label" for="date_naissance">Date de naissance</label>
+                <input type="date" id="date_naissance" name="date_naissance" class="form-control" required value="{{ form.date_naissance.value|default:'' }}">
+                {{ form.date_naissance.errors }}
+            </div>
+            <div>
+                <label class="form-label" for="numero_telephone">Téléphone</label>
+                <input type="text" id="numero_telephone" name="numero_telephone" class="form-control" required value="{{ form.numero_telephone.value|default:'' }}">
+                {{ form.numero_telephone.errors }}
+            </div>
+            <div>
+                <label class="form-label" for="adresse_email">E-mail</label>
+                <input type="email" id="adresse_email" name="adresse_email" class="form-control" required value="{{ form.adresse_email.value|default:'' }}">
+                {{ form.adresse_email.errors }}
+            </div>
+            <div class="full">
+                <label class="form-label" for="adresse">Adresse</label>
+                <input type="text" id="adresse" name="adresse" class="form-control" required value="{{ form.adresse.value|default:'' }}">
+                {{ form.adresse.errors }}
+            </div>
+            <div class="full">
+                <label class="form-label" for="medecin_traitant">Médecin traitant</label>
+                <select id="medecin_traitant" class="form-select" name="medecin_traitant">
+                    <option value="" selected>Non assigné</option>
+                    {% for medecin in medecins %}
+                    <option value="{{ medecin.id }}" {% if form.medecin_traitant.value|stringformat:'s' == medecin.id|stringformat:'s' %}selected{% endif %}>Dr {{ medecin.nom }} {{ medecin.prenom }}</option>
+                    {% endfor %}
+                </select>
+                {{ form.medecin_traitant.errors }}
+            </div>
+        </div>
+
+        <div class="d-flex gap-2 flex-wrap mt-4">
+            <button type="submit" class="btn btn-primary">Créer le patient</button>
+            <a href="{% url 'patient_list' %}" class="btn btn-outline-secondary">Annuler</a>
+        </div>
+    </form>
+</section>
+{% endblock %}

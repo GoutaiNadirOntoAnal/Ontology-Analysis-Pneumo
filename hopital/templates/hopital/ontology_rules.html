@@ -1,0 +1,516 @@
+{% extends 'main.html' %}
+{% load static %}
+
+{% block title %}Règles de l’ontologie{% endblock %}
+
+{% block content %}
+<style>
+.rules-header-actions{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:14px;
+    flex-wrap:wrap;
+    margin-bottom:18px;
+}
+
+.add-rule-panel{
+    display:none;
+    margin-bottom:24px;
+    border:1px solid #cfe3fb;
+    background:linear-gradient(135deg,#ffffff,#f5faff);
+}
+
+.add-rule-panel.open{
+    display:block;
+    animation:fadeOpen .2s ease-out;
+}
+
+@keyframes fadeOpen{
+    from{opacity:0; transform:translateY(-8px);}
+    to{opacity:1; transform:translateY(0);}
+}
+
+.doctor-help-box{
+    background:#f4f9ff;
+    border:1px solid #d6e8fb;
+    border-radius:18px;
+    padding:16px 18px;
+    color:#52677d;
+    line-height:1.65;
+    margin-bottom:20px;
+}
+
+.rules-table-scroll{
+    overflow-x:auto;
+    border-radius:22px;
+    border:1px solid #dbe6f0;
+    background:#fff;
+}
+
+.rules-table{
+    min-width:900px;
+    margin-bottom:0 !important;
+    table-layout:fixed;
+}
+
+.rules-table thead th{
+    background:#edf4fb;
+    color:#172638;
+    font-weight:900;
+    padding:16px 18px;
+    border-bottom:1px solid #dbe6f0;
+    white-space:nowrap;
+}
+
+.rules-table tbody td{
+    padding:14px 18px;
+    vertical-align:middle;
+    border-bottom:1px solid #edf3f8;
+}
+
+.rules-table tbody tr:hover{
+    background:#f8fbff;
+}
+
+.disease-pill{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    padding:9px 15px;
+    border-radius:999px;
+    background:#eaf7ec;
+    color:#136a28;
+    border:1px solid #cde9d2;
+    font-weight:900;
+    line-height:1.35;
+    max-width:280px;
+    white-space:normal;
+}
+
+.criteria-wrap{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+}
+
+.criteria-chip{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    padding:7px 10px;
+    border-radius:14px;
+    background:#f8fbfe;
+    border:1px solid #dbe6f0;
+    color:#172638;
+    font-weight:750;
+    line-height:1.35;
+}
+
+.criteria-chip b{
+    color:#0d47a1;
+    font-weight:900;
+}
+
+.icon-actions{
+    display:flex;
+    gap:9px;
+    justify-content:center;
+    align-items:center;
+}
+
+.icon-btn{
+    width:42px;
+    height:42px;
+    border-radius:14px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    border:1px solid #cbd9e8;
+    background:#fff;
+    font-size:1.25rem;
+    text-decoration:none;
+    transition:.2s ease;
+}
+
+.icon-btn.edit{
+    color:#0d47a1;
+    border-color:#a9cdf8;
+}
+
+.icon-btn.edit:hover{
+    background:#eaf4ff;
+}
+
+.icon-btn.delete{
+    color:#c62828;
+    border-color:#f1b4b4;
+}
+
+.icon-btn.delete:hover{
+    background:#fff1f1;
+}
+
+.condition-card{
+    background:#ffffff;
+    border:1px solid #dbe6f0;
+    border-radius:18px;
+    padding:18px !important;
+    margin-bottom:12px;
+}
+
+.form-label-med{
+    font-weight:850;
+    color:#172638;
+    margin-bottom:8px;
+}
+
+.example-line{
+    background:#eef7ff;
+    color:#0d47a1;
+    border-radius:12px;
+    padding:10px 12px;
+    font-weight:700;
+    margin-top:8px;
+}
+
+.condition-grid{
+    display:grid;
+    grid-template-columns:minmax(240px, 320px) minmax(360px, 1fr) 52px;
+    gap:16px;
+    align-items:end;
+}
+
+.condition-card .form-control,
+.condition-card .btn{
+    min-height:54px;
+    border-radius:16px !important;
+}
+
+.condition-hint{
+    display:block;
+    color:#6b7a8c;
+    font-size:.88rem;
+    margin-top:7px;
+}
+
+.condition-value:disabled{
+    background:#f3f6fa !important;
+    color:#7a8795 !important;
+    cursor:not-allowed;
+}
+
+@media (max-width: 900px){
+    .condition-grid{
+        grid-template-columns:1fr;
+    }
+}
+</style>
+
+<div class="page-header">
+    <div>
+        <span class="eyebrow"><i class="ri-node-tree"></i> Administration</span>
+        <h1 class="page-title">Règles de l’ontologie</h1>
+        <p class="page-subtitle">
+            Tableau complet des règles récupérées depuis onto.owl.
+        </p>
+    </div>
+
+    <div class="action-group">
+        <a href="{% url 'index' %}" class="btn btn-outline-primary">Accueil</a>
+        <a href="{% url 'patient_list' %}" class="btn btn-outline-primary">Patients</a>
+        <a href="{% url 'medecin_list' %}" class="btn btn-outline-primary">Médecins</a>
+    </div>
+</div>
+
+<div class="content-card mb-4">
+    <div class="rules-header-actions">
+        <div>
+            <h2 class="section-title mb-1">Liste des règles cliniques</h2>
+            <p class="help-text mb-0">
+                Ajouter crée une nouvelle règle. Modifier remplace la règle choisie sans doublon.
+            </p>
+        </div>
+
+        <button type="button" class="btn btn-primary" onclick="toggleAddRulePanel()">
+            <i class="ri-add-circle-line"></i>
+            Ajouter une nouvelle règle
+        </button>
+    </div>
+
+    <section id="addRulePanel" class="content-card add-rule-panel">
+        <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap mb-3">
+            <div>
+                <span class="eyebrow"><i class="ri-file-add-line"></i> Nouvelle règle</span>
+                <h2 class="section-title mb-1">Créer une règle clinique</h2>
+                <p class="help-text mb-0">
+                    Choisissez la maladie réelle de l’ontologie, puis les critères cliniques.
+                </p>
+            </div>
+
+            <button type="button" class="btn btn-outline-secondary" onclick="toggleAddRulePanel(false)">
+                Fermer
+            </button>
+        </div>
+
+        <div class="doctor-help-box">
+            <strong>Exemple :</strong>
+            maladie = <strong>Asthme</strong>,
+            critères = <strong>dyspnée</strong>, <strong>sifflements</strong>, <strong>TVO réversible</strong>.
+        </div>
+
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="mb-4">
+                <label class="form-label-med">Maladie réelle dans l’ontologie</label>
+                <select name="pathologie" class="form-control" required>
+                    <option value="">Sélectionner une maladie</option>
+                    {% for p in pathology_choices %}
+                        <option value="{{ p.id }}">{{ p.label }}</option>
+                    {% endfor %}
+                </select>
+                <small class="condition-hint">
+                    Cette valeur sert à générer la règle SWRL. Elle n’est pas un texte libre.
+                </small>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label-med">Nom affiché dans le tableau</label>
+                <input type="text" name="pathologie_display_name" class="form-control"
+                       placeholder="Optionnel : exemple Asthme sévère">
+                <small class="condition-hint">
+                    Change seulement l’affichage dans l’interface, pas l’ontologie.
+                </small>
+            </div>
+
+            <h3 class="section-title mt-4">Critères cliniques</h3>
+
+            <div id="conditions-wrapper">
+                <div class="condition-card condition-row">
+                    <div class="condition-grid">
+                        <div>
+                            <label class="form-label-med">Type de critère</label>
+                            <select name="condition_property" class="form-control condition-type" required onchange="updateTermSuggestions(this)">
+                                <option value="">Choisir le type</option>
+                                {% for value, label in condition_choices %}
+                                    <option value="{{ value }}">{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="form-label-med">Terme clinique</label>
+                            <select name="condition_value" class="form-control condition-value" required disabled>
+                                <option value="">Choisissez d’abord le type</option>
+                            </select>
+                            <small class="condition-hint">
+                                Sélection obligatoire depuis l’ontologie/règles existantes.
+                            </small>
+                        </div>
+
+                        <div>
+                            <button type="button" class="btn btn-outline-danger w-100"
+                                    onclick="removeCondition(this)" title="Supprimer ce critère">
+                                <i class="ri-close-line"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center mt-3 flex-wrap gap-2">
+                <button type="button" class="btn btn-outline-primary" onclick="addCondition()">
+                    + Ajouter un critère
+                </button>
+
+                <div class="d-flex gap-2 flex-wrap">
+                    <button type="button" class="btn btn-outline-secondary" onclick="toggleAddRulePanel(false)">
+                        Annuler
+                    </button>
+                    <button type="submit" class="btn btn-success">
+                        Enregistrer la règle
+                    </button>
+                </div>
+            </div>
+        </form>
+    </section>
+
+    <div class="rules-table-scroll">
+        <table class="table table-hover align-middle rules-table">
+            <thead>
+                <tr>
+                    <th style="width:70px;">#</th>
+                    <th style="width:270px;">Nom de la maladie</th>
+                    <th>Critères cliniques</th>
+                    <th style="width:130px; text-align:center;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for rule in existing_rules %}
+                <tr>
+                    <td><strong>{{ forloop.counter }}</strong></td>
+
+                    <td>
+                        {% if rule.pathologie_display %}
+                            <span class="disease-pill">{{ rule.pathologie_display }}</span>
+                        {% else %}
+                            <span class="text-muted">Maladie non détectée</span>
+                        {% endif %}
+                    </td>
+
+                    <td>
+                        {% if rule.conditions %}
+                            <div class="criteria-wrap">
+                                {% for c in rule.conditions %}
+                                    <span class="criteria-chip">
+                                        <b>{{ c.label }} :</b> {{ c.value }}
+                                    </span>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <span class="text-muted">Aucun critère clinique lisible</span>
+                        {% endif %}
+                    </td>
+
+                    <td>
+                        <div class="icon-actions">
+                            <a class="icon-btn edit"
+                               href="{% url 'ontology_rule_edit' rule.key %}"
+                               title="Modifier">
+                                <i class="ri-edit-2-line"></i>
+                            </a>
+
+                            <form method="post"
+                                  action="{% url 'ontology_rule_delete' rule.key %}"
+                                  onsubmit="return confirm('Voulez-vous vraiment supprimer cette règle ?');">
+                                {% csrf_token %}
+                                <button type="submit" class="icon-btn delete" title="Supprimer">
+                                    <i class="ri-delete-bin-6-line"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="text-center py-4 text-muted">
+                        Aucune règle trouvée dans l’ontologie.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+const CLINICAL_TERMS = {{ clinical_terms_json|safe }};
+
+function toggleAddRulePanel(force){
+    const panel = document.getElementById('addRulePanel');
+    const shouldOpen = force === true || (force !== false && !panel.classList.contains('open'));
+
+    if(shouldOpen){
+        panel.classList.add('open');
+        panel.scrollIntoView({behavior:'smooth', block:'start'});
+    }else{
+        panel.classList.remove('open');
+    }
+}
+
+function initConditionRow(row){
+    const selectType = row.querySelector('.condition-type');
+    const selectValue = row.querySelector('.condition-value');
+    if(!selectType || !selectValue) return;
+    updateTermSuggestions(selectType);
+}
+
+function updateTermSuggestions(selectType){
+    const row = selectType.closest('.condition-row');
+    const selectValue = row.querySelector('.condition-value');
+    if(!row || !selectValue) return;
+
+    const type = selectType.value;
+    const currentValue = selectValue.dataset.currentValue || selectValue.value || '';
+    const terms = CLINICAL_TERMS[type] || [];
+
+    selectValue.innerHTML = '';
+
+    if(!type){
+        selectValue.disabled = true;
+        selectValue.innerHTML = '<option value="">Choisissez d’abord le type</option>';
+        return;
+    }
+
+    if(!terms.length){
+        selectValue.disabled = true;
+        selectValue.innerHTML = '<option value="">Aucun terme disponible pour ce type</option>';
+        return;
+    }
+
+    selectValue.disabled = false;
+
+    const first = document.createElement('option');
+    first.value = '';
+    first.textContent = 'Sélectionner un terme';
+    selectValue.appendChild(first);
+
+    terms.forEach(term => {
+        const option = document.createElement('option');
+        option.value = term;
+        option.textContent = term;
+        if(term === currentValue){
+            option.selected = true;
+        }
+        selectValue.appendChild(option);
+    });
+
+    if(currentValue && !terms.includes(currentValue)){
+        const option = document.createElement('option');
+        option.value = currentValue;
+        option.textContent = currentValue + ' (valeur actuelle)';
+        option.selected = true;
+        selectValue.appendChild(option);
+    }
+}
+
+function addCondition(){
+    const wrapper = document.getElementById('conditions-wrapper');
+    const first = wrapper.querySelector('.condition-row');
+    const clone = first.cloneNode(true);
+
+    clone.querySelectorAll('select').forEach(el => {
+        el.value = '';
+        if(el.classList.contains('condition-value')){
+            el.dataset.currentValue = '';
+            el.disabled = true;
+            el.innerHTML = '<option value="">Choisissez d’abord le type</option>';
+        }
+    });
+
+    wrapper.appendChild(clone);
+    initConditionRow(clone);
+}
+
+function removeCondition(btn){
+    const rows = document.querySelectorAll('.condition-row');
+    if(rows.length <= 1){
+        const row = rows[0];
+        row.querySelectorAll('select').forEach(el => {
+            el.value = '';
+            if(el.classList.contains('condition-value')){
+                el.dataset.currentValue = '';
+            }
+        });
+        updateTermSuggestions(row.querySelector('.condition-type'));
+        return;
+    }
+    btn.closest('.condition-row').remove();
+}
+
+document.addEventListener('DOMContentLoaded', function(){
+    document.querySelectorAll('.condition-row').forEach(initConditionRow);
+});
+</script>
+{% endblock %}

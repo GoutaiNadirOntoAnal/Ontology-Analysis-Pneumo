@@ -1,0 +1,66 @@
+{% extends 'main.html' %}
+{% load static %}
+{% block title %}Accueil{% endblock %}
+
+{% block content %}
+<div class="landing-container">
+    <section class="landing-text">
+        <span class="eyebrow"><i class="ri-hospital-line"></i> Pneumologie clinique</span>
+        <h1>Plateforme professionnelle d’aide au diagnostic médical</h1>
+        <p>
+            Interface pensée pour les médecins : accès rapide aux patients, consultation du dossier médical,
+            analyse du texte clinique et gestion des règles de l’ontologie.
+        </p>
+        <div class="landing-actions">
+            {% if request.user.is_authenticated and is_medecin %}
+                <a href="{% url 'patient_list' %}" class="btn btn-primary">Consulter les patients</a>
+                <a href="{% url 'diagnostic_view' %}" class="btn btn-outline-primary">Ouvrir l’aide au diagnostic</a>
+            {% else %}
+                <a href="{% url 'login' %}" class="btn btn-primary">Se connecter</a>
+            {% endif %}
+        </div>
+    </section>
+
+    <section class="landing-image-container">
+        <img src="{% static 'images/pulmonologist_2.png' %}" alt="Médecin pneumologue" class="landing-image">
+    </section>
+</div>
+
+{% if request.user.is_authenticated and is_medecin %}
+<div class="dashboard-grid">
+    <a href="{% url 'index' %}" class="dashboard-card">
+        <i class="ri-home-4-line"></i>
+        <strong>Accueil</strong>
+        <span>Retour au tableau de bord général.</span>
+    </a>
+
+    {% if is_superuser %}
+    <a href="{% url 'medecin_list' %}" class="dashboard-card">
+        <i class="ri-nurse-line"></i>
+        <strong>Liste des médecins</strong>
+        <span>Gérer les comptes et profils médicaux.</span>
+    </a>
+    {% endif %}
+
+    <a href="{% url 'patient_list' %}" class="dashboard-card">
+        <i class="ri-user-heart-line"></i>
+        <strong>Liste des patients</strong>
+        <span>Accéder aux dossiers médicaux et historiques cliniques.</span>
+    </a>
+
+    <a href="{% url 'diagnostic_view' %}" class="dashboard-card">
+        <i class="ri-stethoscope-line"></i>
+        <strong>Aide au diagnostic</strong>
+        <span>Analyser un texte clinique et créer un dossier médical.</span>
+    </a>
+
+    {% if is_superuser %}
+    <a href="{% url 'ontology_rules' %}" class="dashboard-card">
+        <i class="ri-node-tree"></i>
+        <strong>Règles de l’ontologie</strong>
+        <span>Ajouter des règles cliniques utilisées par le moteur d’analyse.</span>
+    </a>
+    {% endif %}
+</div>
+{% endif %}
+{% endblock %}

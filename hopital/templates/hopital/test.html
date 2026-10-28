@@ -1,0 +1,121 @@
+{% extends 'main.html' %}
+{% load static %}
+{% block title %}Liste des symptomes{% endblock %}
+{% block css %}
+<link rel="stylesheet" href="{% static 'css/list.css' %}">
+{% endblock %}
+{% block content %}
+<h2>Liste des symptomes</h2>
+<form method="POST" action="{% url 'test' %}">
+    {% csrf_token %}
+    <div class="form-group">
+        <h4>Antécédents personnels</h4>
+        {% for instance in antPers %}
+        <input type="checkbox" name="antPers" value="{{ instance.name }}">{{ instance.label.0 }}<br>
+        {% endfor %}
+    </div>
+    <div class="form-group">
+        <h4>Antécédents familiaux</h4>
+        {% for instance in antFam %}
+        <input type="checkbox" name="antFam" value="{{ instance.name }}">{{ instance.label.0 }}<br>
+        {% endfor %}
+    </div>
+    <div class="form-group">
+        <h4>Habitudes de vie</h4>
+
+        {% for instance in habitVie %}
+        <input type="checkbox" name="habitVie" value="{{ instance.name }}">{{ instance.label.0 }}<br>
+        {% endfor %}
+        <input type="checkbox" name="tabac" id="tabac-checkbox"> Tabac<br>
+        <div id="tabac-radio-div" style="display: none;">
+        {% for instance in tabac %}
+        <input type="radio" name="habitVie" value="{{ instance.name }}">{{ instance.label.0 }}<br>
+        {% endfor %}
+        </div>
+    </div>
+    <div class="form-group">
+        <h4>Atopie</h4>
+        {% for instance in atopie %}
+        <input type="checkbox" name="atopie" value="{{ instance.name }}">{{ instance.label.0 }}<br>
+        {% endfor %}
+    </div>
+    <div class="form-group">
+        <h4>Symptomes</h4>
+        <input type="checkbox" name="dysp" id="dyspnee-checkbox"> Dyspnée<br>
+        <div id="dyspnee-radio-div" style="display: none;">
+        {% for instance in dyspnee %}
+        <input type="radio" name="symptome" value="{{ instance.name }}">{{ instance.label.0 }}<br>
+        {% endfor %}
+        </div>
+        <input type="checkbox" name="toux" id="toux-checkbox"> Toux<br>
+        <div id="toux-radio-div" style="display: none;">
+        {% for instance in toux %}
+        <input type="radio" name="symptome" value="{{ instance.name }}">{{ instance.label.0 }}<br>
+        {% endfor %}
+        </div>
+        <input type="checkbox" name="crachat" id="crachat-checkbox"> Crachat<br>
+        <div id="crachat-radio-div" style="display: none;">
+        {% for instance in crachat %}
+        <input type="radio" name="symptome" value="{{ instance.name }}">{{ instance.label.0 }}<br>
+        {% endfor %}
+        </div>
+        <input type="checkbox" name="douleurT" id="douleurT-checkbox"> Douleur thoracique<br>
+        <div id="douleurT-radio-div" style="display: none;">
+        {% for instance in douleurT %}
+        <input type="radio" name="symptome" value="{{ instance.name }}">{{ instance.label.0 }}<br>
+        {% endfor %}
+        </div>
+        {% for instance in symp %}
+        <input type="checkbox" name="symptome" value="{{ instance.name }}">{{ instance.label.0 }}<br>
+        {% endfor %}
+    </div>
+    <div class="form-group">
+        <h4>Signes physique</h4>
+        {% for instsance in signe_phys %}
+        <input type="checkbox" name="signe_physique" value="{{ instance.name }}">{{ instance.label.0 }}<br>
+        {% endfor %}
+    </div>
+    <div class="form-group">
+        <h4>Signes cliniques</h4>
+        <input type="checkbox" name="rales" id="rales-checkbox"> Râles<br>
+        <div id="rales-radio-div" style="display: none;">
+        {% for instance in rales %}
+        <input type="radio" name="signe_clinique" value="{{ instance.name }}">{{ instance.label.0 }}<br>
+        {% endfor %}
+        </div>
+        {% for instance in signe_clin %}
+        <input type="checkbox" name="signe_clinique" value="{{ instance.name }}">{{ instance.label.0 }}<br>
+        {% endfor %}
+    </div>
+    <div class="form-group">
+        <h4>EFR</h4>
+        {% for instance in efr %}
+        <input type="checkbox" name="efr" value="{{instance.name}}">{{instance.label.0}} <br>
+        {% endfor %}
+    </div>
+    <div class="form-group">
+        <h4>Radiographie</h4>
+        {% for instance in radio %}
+        <input type="checkbox" name="radio" value="{{instance.name}}">{{instance.label.0}} <br>
+        {% endfor %}
+    </div>
+        <div class="form-group">
+        <h4>TDM</h4>
+        <input type="checkbox" name="rales" id="ddb-checkbox"> Dilatation des bronches<br>
+        <div id="ddb-radio-div" style="display: none;">
+        {% for instance in ddb %}
+        <input type="radio" name="tdm" value="{{ instance.name }}">{{ instance.label.0 }}<br>
+        {% endfor %}
+        </div>
+        {% for instance in tdm %}
+        <input type="checkbox" name="tdm" value="{{ instance.name }}">{{ instance.label.0 }}<br>
+        {% endfor %}
+    </div>
+
+
+    <button type="submit">Submit</button>
+</form>
+{% block script %}
+<script type="text/javascript" src='{% static "js/test.js" %}'></script>
+{% endblock %}
+{% endblock %}

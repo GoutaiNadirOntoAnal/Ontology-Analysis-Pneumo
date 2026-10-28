@@ -1,0 +1,155 @@
+{% extends 'main.html' %}
+{% load static %}
+{% block title %}Dossier patient{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <span class="eyebrow"><i class="ri-file-user-line"></i> Dossier médical</span>
+        <h1 class="page-title">
+            {% if patient_db %}
+                {{ patient_db.nom }} {{ patient_db.prenom }}
+            {% else %}
+                {{ patient.nom_p.0 }} {{ patient.prenom_p.0 }}
+            {% endif %}
+        </h1>
+        <p class="page-subtitle">
+            Synthèse administrative, médecin traitant, pathologies suggérées et historique des dossiers cliniques.
+        </p>
+    </div>
+    <div class="action-group">
+        <a class="btn btn-outline-primary" href="{% url 'patient_list' %}">Liste des patients</a>
+        {% if is_medecin %}
+            <a class="btn btn-primary" href="{% url 'ajout_dossier' id %}">Ajouter un dossier</a>
+            <a class="btn btn-outline-primary" href="{% url 'diagnostic_view' %}">Aide au diagnostic</a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="detail-grid">
+    <aside class="medical-card profile-card">
+        {% if patient_db and patient_db.sexe == 'F' %}
+            <img src="{% static 'images/girl.png' %}" alt="Photo patient" class="profile-photo">
+        {% else %}
+            <img src="{% static 'images/profile.png' %}" alt="Photo patient" class="profile-photo">
+        {% endif %}
+
+        <h2 class="section-title mb-1">
+            {% if patient_db %}{{ patient_db.nom }} {{ patient_db.prenom }}{% else %}{{ patient.nom_p.0 }} {{ patient.prenom_p.0 }}{% endif %}
+        </h2>
+        <p class="help-text mb-3">Patient n° {{ id }}</p>
+
+        {% if patient_pathologies %}
+        <div class="message-box message-warning text-start mb-3">
+            <div class="message-icon"><i class="ri-heart-pulse-line"></i></div>
+            <div class="message-content">Pathologie suggérée : {{ patient_pathologies }}</div>
+        </div>
+        {% endif %}
+
+        {% if is_medecin %}
+        <div class="d-flex gap-2 justify-content-center flex-wrap mb-3">
+            <a class="btn btn-primary btn-sm" href="{% url 'modifier_patient' id %}">Modifier</a>
+            <form method="post" action="{% url 'supprimer_patient' id %}" onsubmit="return confirm('Confirmer la suppression de ce patient ?');">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-outline-danger btn-sm">Supprimer</button>
+            </form>
+        </div>
+        {% endif %}
+
+        <div class="info-list text-start">
+            <div class="info-row"><span class="info-label">Sexe</span><span class="info-value">{% if patient_db %}{{ patient_db.get_sexe_display }}{% else %}{{ patient.sexe.0 }}{% endif %}</span></div>
+            <div class="info-row"><span class="info-label">Date de naissance</span><span class="info-value">{% if patient_db %}{{ patient_db.date_naissance }}{% else %}{{ patient.date_naissance.0 }}{% endif %}</span></div>
+            <div class="info-row"><span class="info-label">Téléphone</span><span class="info-value">{% if patient_db %}{{ patient_db.numero_telephone }}{% else %}{{ patient.numero_telephone_p.0 }}{% endif %}</span></div>
+            <div class="info-row"><span class="info-label">E-mail</span><span class="info-value">{% if patient_db %}{{ patient_db.adresse_email }}{% else %}{{ patient.adresse_email_p.0 }}{% endif %}</span></div>
+            <div class="info-row"><span class="info-label">Adresse</span><span class="info-value">{% if patient_db %}{{ patient_db.adresse }}{% else %}{{ patient.adresse_p.0 }}{% endif %}</span></div>
+        </div>
+    </aside>
+
+    <section>
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <span>Médecin traitant</span>
+                <strong>{% if patient_db and patient_db.medecin_traitant %}Dr {{ patient_db.medecin_traitant.nom }} {{ patient_db.medecin_traitant.prenom }}{% elif medecin %}Dr {{ medecin.nom.0 }} {{ medecin.prenom.0 }}{% else %}Non assigné{% endif %}</strong>
+            </div>
+            <div class="kpi-card">
+                <span>Nombre de dossiers</span>
+                <strong>{{ nombre_dossiers }}</strong>
+            </div>
+            <div class="kpi-card">
+                <span>Dernière mise à jour</span>
+                <strong>{% if dernier_dossier_db %}{{ dernier_dossier_db.date_creation }}{% else %}Aucun dossier{% endif %}</strong>
+            </div>
+        </div>
+
+        <div class="medical-card mb-4">
+            <h2 class="section-title">Informations du médecin traitant</h2>
+            <div class="clinical-grid">
+                <div class="clinical-field"><label>Nom du médecin</label><div>{% if patient_db and patient_db.medecin_traitant %}Dr {{ patient_db.medecin_traitant.nom }} {{ patient_db.medecin_traitant.prenom }}{% elif medecin %}Dr {{ medecin.nom.0 }} {{ medecin.prenom.0 }}{% else %}Non assigné{% endif %}</div></div>
+                <div class="clinical-field"><label>Spécialité</label><div>{% if patient_db and patient_db.medecin_traitant %}{{ patient_db.medecin_traitant.specialite }}{% elif medecin %}{{ medecin.specialite.0 }}{% else %}—{% endif %}</div></div>
+                <div class="clinical-field"><label>Téléphone</label><div>{% if patient_db and patient_db.medecin_traitant %}{{ patient_db.medecin_traitant.numero_telephone }}{% elif medecin %}{{ medecin.numero_telephone.0 }}{% else %}—{% endif %}</div></div>
+                <div class="clinical-field"><label>E-mail</label><div>{% if patient_db and patient_db.medecin_traitant %}{{ patient_db.medecin_traitant.adresse_email }}{% elif medecin %}{{ medecin.adresse_email.0 }}{% else %}—{% endif %}</div></div>
+            </div>
+        </div>
+
+        <div class="medical-card">
+            <div class="d-flex align-items-center justify-content-between gap-2 flex-wrap mb-3">
+                <div>
+                    <h2 class="section-title mb-1">Historique clinique</h2>
+                    <p class="help-text mb-0">Tous les dossiers ajoutés par formulaire ou créés depuis l’aide au diagnostic.</p>
+                </div>
+                {% if dernier_dossier_db %}
+                    <a class="btn btn-outline-primary" href="{% url 'modifier_dossier' id %}?dossier_id={{ dernier_dossier_db.id }}">Modifier le dernier dossier</a>
+                {% endif %}
+            </div>
+
+            <div class="timeline">
+                {% for item in dossiers_affichage %}
+                <article class="timeline-item">
+                    <div class="timeline-head">
+                        <div>
+                            <div class="timeline-title">Dossier clinique n° {{ item.index }}</div>
+                            <small class="text-muted">
+                                {% if item.date_creation %}Créé le {{ item.date_creation }}{% else %}Ancien dossier ontologique{% endif %}
+                                · Source : {{ item.source }}
+                            </small>
+                        </div>
+                        <div class="action-group">
+                            {% if item.pathologie %}<span class="badge-soft"><i class="ri-heart-pulse-line"></i>{{ item.pathologie }}</span>{% endif %}
+                            {% if item.score %}<span class="badge-soft">Score : {{ item.score }}%</span>{% endif %}
+                            {% if item.db %}<a class="btn btn-sm btn-outline-primary" href="{% url 'modifier_dossier' id %}?dossier_id={{ item.db.id }}">Modifier</a>{% endif %}
+                        </div>
+                    </div>
+
+                    <div class="clinical-grid">
+                        {% if item.motif %}<div class="clinical-field"><label>Motif de consultation</label><div>{{ item.motif }}</div></div>{% endif %}
+                        {% if item.symptome %}<div class="clinical-field"><label>Symptômes</label><div>{{ item.symptome }}</div></div>{% endif %}
+                        {% if item.signe %}<div class="clinical-field"><label>Signes cliniques</label><div>{{ item.signe }}</div></div>{% endif %}
+                        {% if item.examcli %}<div class="clinical-field"><label>Examen clinique</label><div>{{ item.examcli }}</div></div>{% endif %}
+                        {% if item.antFam %}<div class="clinical-field"><label>Antécédents familiaux</label><div>{{ item.antFam }}</div></div>{% endif %}
+                        {% if item.antPers %}<div class="clinical-field"><label>Antécédents personnels</label><div>{{ item.antPers }}</div></div>{% endif %}
+                        {% if item.atopie %}<div class="clinical-field"><label>Atopie</label><div>{{ item.atopie }}</div></div>{% endif %}
+                        {% if item.habitVie %}<div class="clinical-field"><label>Habitudes de vie / facteurs de risque</label><div>{{ item.habitVie }}</div></div>{% endif %}
+                        {% if item.efr %}<div class="clinical-field"><label>EFR</label><div>{{ item.efr }}</div></div>{% endif %}
+                        {% if item.radio %}<div class="clinical-field"><label>Radiographie</label><div>{{ item.radio }}</div></div>{% endif %}
+                        {% if item.tdm %}<div class="clinical-field"><label>TDM</label><div>{{ item.tdm }}</div></div>{% endif %}
+                        {% if item.poids or item.taille %}<div class="clinical-field"><label>Constantes</label><div>Poids : {{ item.poids|default:'—' }} kg · Taille : {{ item.taille|default:'—' }} m</div></div>{% endif %}
+                    </div>
+
+                    {% if item.texte_original or item.texte_corrige %}
+                    <div class="clinical-field mt-3">
+                        <label>Texte clinique analysé</label>
+                        <div>{% if item.texte_corrige %}{{ item.texte_corrige }}{% else %}{{ item.texte_original }}{% endif %}</div>
+                    </div>
+                    {% endif %}
+                </article>
+                {% empty %}
+                <div class="message-box message-info">
+                    <div class="message-icon"><i class="ri-information-line"></i></div>
+                    <div class="message-content">Aucun dossier médical n’est encore enregistré pour ce patient.</div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+</div>
+{% endblock %}

@@ -1,0 +1,827 @@
+{% extends 'main.html' %}
+{% load static %}
+
+{% block title %}Aide au diagnostic{% endblock %}
+
+{% block css %}
+<style>
+/* ==========================================================
+   DIAGNOSTIC — VERSION CENTRÉE + RÉSULTAT DANS DIV BLANCHE
+   ========================================================== */
+
+.diagnostic-page{
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 18px 0 48px;
+}
+
+.diagnostic-header{
+    text-align: center;
+    margin-bottom: 26px;
+}
+
+.diagnostic-badge{
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 16px;
+    border-radius: 999px;
+    background: #eaf4ff;
+    color: #0d47a1;
+    border: 1px solid #cfe3fb;
+    font-weight: 800;
+    margin-bottom: 14px;
+}
+
+.diagnostic-title{
+    font-size: clamp(2rem, 3vw, 3rem);
+    font-weight: 900;
+    color: #172638;
+    line-height: 1.1;
+    margin: 0 0 12px;
+}
+
+.diagnostic-subtitle{
+    color: #63758a;
+    font-size: 1.08rem;
+    line-height: 1.7;
+    max-width: 760px;
+    margin: 0 auto;
+}
+
+.diagnostic-card,
+.result-panel{
+    background: #ffffff;
+    border: 1px solid #dbe6f0;
+    border-radius: 26px;
+    box-shadow: 0 16px 38px rgba(18,55,105,.08);
+}
+
+.diagnostic-card{
+    padding: 30px;
+    margin-bottom: 26px;
+}
+
+.form-title{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-size: 1.45rem;
+    font-weight: 900;
+    color: #172638;
+    margin-bottom: 24px;
+    text-align: center;
+}
+
+.form-title i{
+    color: #1565c0;
+}
+
+.diag-field{
+    margin-bottom: 22px;
+}
+
+.diag-field label{
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 850;
+    color: #172638;
+    margin-bottom: 10px;
+    font-size: 1.02rem;
+}
+
+.diag-field label i{
+    color: #1565c0;
+}
+
+.diag-field select,
+.diag-field textarea{
+    width: 100%;
+    border-radius: 18px !important;
+    border: 1px solid #cbd9e8 !important;
+    background: #fbfdff !important;
+    color: #172638 !important;
+    font-size: 1rem !important;
+    padding: 14px 16px !important;
+    transition: .2s ease;
+}
+
+.diag-field select:focus,
+.diag-field textarea:focus{
+    border-color: #1565c0 !important;
+    box-shadow: 0 0 0 4px rgba(21,101,192,.10) !important;
+    outline: none !important;
+}
+
+.diag-field select{
+    min-height: 56px;
+}
+
+.diag-field textarea,
+#id_diagnostic_text{
+    min-height: 260px !important;
+    resize: vertical;
+    line-height: 1.75;
+}
+
+.form-errors,
+.errorlist{
+    color: #c62828;
+    margin-top: 8px;
+    font-weight: 700;
+}
+
+.submit-zone{
+    display: flex;
+    justify-content: center;
+    margin-top: 26px;
+}
+
+.btn-analyze-main{
+    min-width: 260px;
+    min-height: 54px;
+    border-radius: 16px !important;
+    font-size: 1.05rem !important;
+    font-weight: 900 !important;
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.result-panel{
+    padding: 30px;
+    margin-top: 28px;
+    animation: resultFade .25s ease-out;
+}
+
+@keyframes resultFade{
+    from{ opacity: 0; transform: translateY(12px); }
+    to{ opacity: 1; transform: translateY(0); }
+}
+
+.result-panel-header{
+    text-align: center;
+    border-bottom: 1px solid #edf3f8;
+    padding-bottom: 20px;
+    margin-bottom: 24px;
+}
+
+.result-panel-header .result-icon{
+    width: 58px;
+    height: 58px;
+    border-radius: 20px;
+    margin: 0 auto 14px;
+    background: #eaf7ec;
+    color: #2e7d32;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+}
+
+.result-panel-header h2{
+    font-size: 1.8rem;
+    font-weight: 900;
+    color: #172638;
+    margin-bottom: 8px;
+}
+
+.result-panel-header p{
+    color: #63758a;
+    margin: 0;
+    line-height: 1.6;
+}
+
+.result-section{
+    padding: 20px 0;
+    border-bottom: 1px solid #edf3f8;
+}
+
+.result-section:last-child{
+    border-bottom: none;
+}
+
+.result-section-title{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: clamp(1.1rem, 2vw, 1.28rem);
+    font-weight: 900;
+    color: #172638;
+    margin-bottom: 14px;
+    line-height: 1.25;
+    flex-wrap: wrap;
+    overflow-wrap: anywhere;
+}
+
+.result-section-title i{
+    width: 38px;
+    height: 38px;
+    border-radius: 13px;
+    background: #eaf4ff;
+    color: #0d47a1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.correction-summary{
+    color: #63758a;
+    line-height: 1.7;
+    margin-bottom: 14px;
+}
+
+.corr-item{
+    padding: 12px 0;
+    border-bottom: 1px dashed #d7e6f5;
+    line-height: 1.65;
+}
+
+.corr-item:last-child{
+    border-bottom: none;
+}
+
+.corr-orig{
+    color: #c62828;
+    text-decoration: line-through;
+}
+
+.corr-fixed{
+    color: #2e7d32;
+    font-weight: 900;
+}
+
+.corr-type{
+    display: inline-flex;
+    margin-left: 8px;
+    padding: 3px 9px;
+    border-radius: 999px;
+    background: #eaf4ff;
+    color: #0d47a1;
+    font-size: .78rem;
+    font-weight: 900;
+}
+
+.best-diagnosis{
+    display: grid;
+    grid-template-columns: 82px 1fr;
+    gap: 18px;
+    align-items: center;
+    padding: 18px;
+    border-radius: 20px;
+    background: linear-gradient(135deg, #f4fbf6, #ffffff);
+    border: 1px solid #cde9d2;
+    overflow: hidden;
+}
+
+.confidence-ring{
+    width: 78px;
+    height: 78px;
+    border-radius: 50%;
+    border: 4px solid #2e7d32;
+    background: transparent !important;
+    color: #2e7d32;
+    font-weight: 900;
+    font-size: .95rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: none;
+    flex-shrink: 0;
+}
+
+.best-diagnosis h3{
+    margin: 0 0 6px;
+    color: #172638;
+    font-weight: 950;
+    font-size: 1.35rem;
+    line-height: 1.2;
+    overflow-wrap: anywhere;
+}
+
+.best-diagnosis p{
+    margin: 0;
+    color: #63758a;
+    line-height: 1.45;
+}
+
+.score-table{
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .95rem;
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+.score-table th{
+    background: #edf4fb;
+    color: #172638;
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #dbe6f0;
+}
+
+.score-table td{
+    padding: 12px;
+    border-bottom: 1px solid #edf3f8;
+    vertical-align: middle;
+}
+
+.score-bar-wrap{
+    height: 11px;
+    min-width: 120px;
+    background: #e8eef5;
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.score-bar{
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #1565c0, #64a5f6);
+}
+
+.score-bar.top{
+    background: linear-gradient(90deg, #2e7d32, #66bb6a);
+}
+
+.badge-best{
+    display: inline-flex;
+    align-items: center;
+    margin-left: 8px;
+    padding: 3px 9px;
+    border-radius: 999px;
+    background: #eaf7ec;
+    color: #2e7d32;
+    font-size: .78rem;
+    font-weight: 900;
+}
+
+.clinical-field{
+    border: 1px solid #dbe6f0;
+    background: #fbfdff;
+    border-radius: 18px;
+    padding: 18px;
+    line-height: 2;
+    color: #172638;
+    overflow-wrap: anywhere;
+}
+
+.ent-chips{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 9px;
+}
+
+.ent-group{
+    margin-bottom: 16px;
+}
+
+.ent-group-title{
+    font-weight: 900;
+    color: #172638;
+    margin-bottom: 8px;
+}
+
+.chip{
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 7px 12px;
+    border-radius: 999px;
+    border: 1px solid;
+    font-size: .88rem;
+    font-weight: 800;
+}
+
+.negated{
+    opacity: .65;
+    text-decoration: line-through;
+}
+
+.save-diagnosis-box{
+    margin-top: 28px;
+    padding: 24px;
+    border-radius: 22px;
+    background: #f4f9ff;
+    border: 1px solid #cfe3fb;
+    text-align: center;
+}
+
+.save-diagnosis-box h3{
+    font-size: 1.35rem;
+    font-weight: 950;
+    color: #172638;
+    margin-bottom: 8px;
+}
+
+.save-diagnosis-box p{
+    color: #63758a;
+    line-height: 1.6;
+    margin-bottom: 18px;
+}
+
+.btn-save-diagnostic{
+    min-width: 260px;
+    min-height: 54px;
+    border-radius: 16px !important;
+    font-weight: 950 !important;
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.empty-result{
+    text-align: center;
+    color: #63758a;
+    padding: 18px;
+}
+
+@media (max-width: 720px){
+    .diagnostic-card,
+    .result-panel{
+        padding: 20px;
+        border-radius: 20px;
+    }
+
+    .best-diagnosis{
+        grid-template-columns: 1fr;
+        text-align: center;
+        justify-items: center;
+    }
+
+    .confidence-ring{
+    width: 78px;
+    height: 78px;
+    border-radius: 50%;
+    border: 4px solid #2e7d32;
+    background: transparent !important;
+    color: #2e7d32;
+    font-weight: 900;
+    font-size: .95rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: none;
+    flex-shrink: 0;
+}
+
+    .btn-analyze-main,
+    .btn-save-diagnostic{
+        width: 100%;
+        min-width: auto;
+    }
+}
+
+.confidence-ring,
+.confidence-ring *{
+    background-color: transparent !important;
+}
+
+
+/* Texte annoté plus compact */
+.clinical-field{
+    line-height: 1.65 !important;
+    padding: 16px 18px !important;
+    max-height: none !important;
+}
+
+.clinical-field > div{
+    margin: 0 !important;
+    padding: 0 !important;
+    line-height: 1.65 !important;
+}
+
+.clinical-field mark,
+.clinical-field span{
+    margin-top: 2px !important;
+    margin-bottom: 2px !important;
+}
+
+.result-section{
+    padding-top: 16px !important;
+    padding-bottom: 16px !important;
+}
+
+
+/* Texte annoté V2 : paragraphe compact, sans grands espaces */
+.clinical-field{
+    line-height: 1.85 !important;
+    padding: 14px 16px !important;
+    max-height: none !important;
+    overflow-x: hidden !important;
+    white-space: normal !important;
+}
+
+.clinical-field > div{
+    margin: 0 !important;
+    padding: 0 !important;
+    line-height: 1.85 !important;
+    white-space: normal !important;
+}
+
+.clinical-field mark{
+    display: inline !important;
+    margin: 0 3px !important;
+    padding: 4px 8px !important;
+    border-radius: 8px !important;
+    line-height: 1.9 !important;
+    white-space: normal !important;
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
+}
+
+.clinical-field mark span{
+    display: inline !important;
+    margin-left: 5px !important;
+    font-size: .72em !important;
+    font-weight: 800 !important;
+    vertical-align: baseline !important;
+}
+
+.result-section{
+    padding-top: 14px !important;
+    padding-bottom: 14px !important;
+}
+
+
+
+/* AUTO SWITCH RESULTAT : apres analyse on affiche directement les resultats */
+.diagnostic-page.has-analysis-result .diagnostic-header,
+.diagnostic-page.has-analysis-result .diagnostic-card{
+    display: none !important;
+}
+
+.diagnostic-page.has-analysis-result{
+    padding-top: 0 !important;
+}
+
+#resultats-diagnostic,
+#score-diagnostic,
+#table-scores-diagnostic{
+    scroll-margin-top: 18px;
+}
+
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="diagnostic-page {% if correction or meilleur_diagnostic or scores_regles or diagnostic_surligne or analyse_nlp %}has-analysis-result{% endif %}">
+
+    <div class="diagnostic-header">
+        <span class="diagnostic-badge">
+            <i class="ri-stethoscope-line"></i>
+            Analyse clinique
+        </span>
+        <h1 class="diagnostic-title">Aide au diagnostic pneumologique</h1>
+        <p class="diagnostic-subtitle">
+            Saisissez l’observation clinique du patient, puis cliquez sur analyser.
+            Les résultats seront affichés dans une zone structurée avant l’enregistrement.
+        </p>
+    </div>
+
+    <section class="diagnostic-card" id="bloc-saisie-diagnostic">
+        <h2 class="form-title">
+            <i class="ri-file-text-line"></i>
+            Observation clinique du patient
+        </h2>
+
+        <form method="post" id="diagForm" action="#score-diagnostic">
+            {% csrf_token %}
+
+            <div class="diag-field">
+                <label for="{{ form.patient.id_for_label }}">
+                    <i class="ri-user-heart-line"></i>
+                    Patient concerné
+                </label>
+                {{ form.patient }}
+                <div class="form-errors">{{ form.patient.errors }}</div>
+            </div>
+
+            <div class="diag-field">
+                <label for="{{ form.diagnostic_text.id_for_label }}">
+                    <i class="ri-edit-2-line"></i>
+                    Texte clinique à analyser
+                </label>
+                {{ form.diagnostic_text }}
+                <div class="form-errors">{{ form.diagnostic_text.errors }}</div>
+            </div>
+
+            <div class="submit-zone">
+                <button type="submit" name="action" value="analyser" class="btn btn-primary btn-analyze-main">
+                    <i class="ri-search-eye-line"></i>
+                    Analyser le texte
+                </button>
+            </div>
+        </form>
+    </section>
+
+    {% if correction or meilleur_diagnostic or scores_regles or diagnostic_surligne or analyse_nlp %}
+    <section class="result-panel" id="resultats-diagnostic">
+        <div class="result-panel-header">
+            <div class="result-icon">
+                <i class="ri-pulse-line"></i>
+            </div>
+            <h2>Résultat de l’analyse clinique</h2>
+            <p>
+                Vérifiez les corrections, les entités détectées et l’hypothèse diagnostique avant de sauvegarder
+                le diagnostic dans le dossier médical du patient.
+            </p>
+        </div>
+
+        {% if correction and correction.a_des_erreurs %}
+        <div class="result-section">
+            <h3 class="result-section-title">
+                <i class="ri-edit-2-line"></i>
+                Corrections du texte
+            </h3>
+
+            <p class="correction-summary">{{ correction.resume }}</p>
+
+            {% if correction.texte_corrige %}
+            <div class="corr-item">
+                <strong>Texte corrigé :</strong>
+                <span class="corr-fixed">{{ correction.texte_corrige }}</span>
+            </div>
+            {% endif %}
+
+            {% for c in correction.corrections %}
+            <div class="corr-item">
+                <span class="corr-orig">{{ c.original }}</span>
+                →
+                <span class="corr-fixed">{{ c.corrige }}</span>
+                <span class="corr-type">{{ c.type }}</span>
+                <small class="text-muted">{{ c.explication }}</small>
+            </div>
+            {% endfor %}
+
+            {% for s in correction.suggestions_non_appliquees %}
+            <div class="corr-item">
+                <span class="corr-type">{{ s.type }}</span>
+                <strong>Suggestion non appliquée :</strong>
+                <span class="corr-orig">{{ s.original }}</span>
+                →
+                <span class="corr-fixed">{{ s.suggestion }}</span>
+                <small class="text-muted">{{ s.raison }}</small>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if meilleur_diagnostic %}
+        <div class="result-section" id="score-diagnostic">
+            <h3 class="result-section-title">
+                <i class="ri-heart-pulse-line"></i>
+                Diagnostic suggéré
+            </h3>
+
+            <div class="best-diagnosis">
+                <div class="confidence-ring">{{ meilleur_diagnostic.score }}%</div>
+                <div>
+                    <h3>{{ meilleur_diagnostic.pathologie }}</h3>
+                    <p>Score de similarité : <strong>{{ meilleur_diagnostic.score }}%</strong></p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if scores_regles %}
+        <div class="result-section" id="table-scores-diagnostic">
+            <h3 class="result-section-title">
+                <i class="ri-bar-chart-2-line"></i>
+                Scores par pathologie
+            </h3>
+
+            <table class="score-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Pathologie</th>
+                        <th>Score</th>
+                        <th>Barre</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in scores_regles %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>
+                            {{ r.pathologie }}
+                            {% if forloop.first %}
+                            <span class="badge-best">Meilleur</span>
+                            {% endif %}
+                        </td>
+                        <td><strong>{{ r.score }}%</strong></td>
+                        <td>
+                            <div class="score-bar-wrap">
+                                <div class="score-bar {% if forloop.first %}top{% endif %}" style="width:{{ r.score }}%;"></div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+
+        {% if diagnostic_surligne %}
+        <div class="result-section">
+            <h3 class="result-section-title">
+                <i class="ri-mark-pen-line"></i>
+                Texte annoté
+            </h3>
+            <div class="clinical-field">
+                {{ diagnostic_surligne|safe }}
+            </div>
+        </div>
+        {% endif %}
+
+        {% if analyse_nlp %}
+        <div class="result-section">
+            <h3 class="result-section-title">
+                <i class="ri-price-tag-3-line"></i>
+                Éléments cliniques détectés
+            </h3>
+
+            <div class="ent-chips">
+                {% for e in analyse_nlp.entites %}
+                    <span class="chip {% if e.negatif %}negated{% endif %}"
+                          style="background:#f0f4ff;color:#1f4e79;border-color:#c8d6ef;">
+                        {{ e.texte }}
+                        <small>[{{ e.label }}]</small>
+                        {% if e.negatif %} NIÉ{% endif %}
+                    </span>
+                {% empty %}
+                    <p class="empty-result">Aucune entité clinique détectée.</p>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="save-diagnosis-box">
+            <h3>Enregistrer ce diagnostic</h3>
+            <p>
+                Après vérification du résultat, vous pouvez enregistrer ce diagnostic dans le dossier médical
+                du patient sélectionné.
+            </p>
+
+            <form method="post">
+                {% csrf_token %}
+
+                {% if form.patient.value %}
+                    <input type="hidden" name="patient" value="{{ form.patient.value }}">
+                {% endif %}
+
+                {% if correction and correction.texte_corrige %}
+                    <input type="hidden" name="diagnostic_text" value="{{ correction.texte_corrige }}">
+                {% else %}
+                    {% if form.diagnostic_text.value %}
+                        <input type="hidden" name="diagnostic_text" value="{{ form.diagnostic_text.value }}">
+                    {% endif %}
+                {% endif %}
+
+                <button type="submit" name="action" value="enregistrer" class="btn btn-success btn-save-diagnostic">
+                    <i class="ri-save-3-line"></i>
+                    Enregistrer le diagnostic
+                </button>
+            </form>
+        </div>
+    </section>
+    {% endif %}
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+    const textarea = document.getElementById('id_diagnostic_text') || document.querySelector('#diagForm textarea');
+    if(textarea){
+        textarea.setAttribute('spellcheck', 'false');
+        textarea.setAttribute('autocomplete', 'off');
+        textarea.setAttribute('autocorrect', 'off');
+        textarea.setAttribute('autocapitalize', 'off');
+        textarea.setAttribute('data-diag-input', 'true');
+    }
+
+    const scoreBlock = document.getElementById('score-diagnostic')
+        || document.getElementById('table-scores-diagnostic')
+        || document.getElementById('resultats-diagnostic');
+
+    if(scoreBlock){
+        if ('scrollRestoration' in history) {
+            history.scrollRestoration = 'manual';
+        }
+
+        // Apres analyse, descendre directement vers la zone du score.
+        window.location.hash = scoreBlock.id;
+        scoreBlock.scrollIntoView({behavior: 'auto', block: 'start'});
+
+        setTimeout(function(){
+            scoreBlock.scrollIntoView({behavior: 'auto', block: 'start'});
+        }, 150);
+    }
+});
+</script>
+{% endblock %}

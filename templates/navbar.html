@@ -1,0 +1,384 @@
+{% load static %}
+
+<header class="meddiag-navbar">
+    <div class="meddiag-brand">
+        <a href="{% url 'index' %}" class="meddiag-brand-link">
+            <img src="{% static 'images/meddiag_logo_transparent.png' %}"
+                 alt="Logo MeDiag"
+                 class="meddiag-logo">
+
+            <div class="meddiag-brand-text">
+                <h1>MeDiag</h1>
+                <p>Analyse médicale intelligente</p>
+            </div>
+        </a>
+    </div>
+
+    <button class="meddiag-menu-btn" type="button" onclick="toggleMeddiagMenu()" aria-label="Ouvrir le menu">
+        ☰
+    </button>
+
+    <nav class="meddiag-menu" id="meddiagMenu">
+        <a href="{% url 'index' %}" class="meddiag-nav-link">
+            <span>⌂</span>
+            Accueil
+        </a>
+
+        {% if is_medecin %}
+            {% if is_superuser %}
+                <a href="{% url 'medecin_list' %}" class="meddiag-nav-link">
+                    <span>⚕</span>
+                    Médecins
+                </a>
+            {% endif %}
+
+            <a href="{% url 'patient_list' %}" class="meddiag-nav-link">
+                <span>♙</span>
+                Patients
+            </a>
+
+            <a href="{% url 'diagnostic_view' %}" class="meddiag-nav-link">
+                <span>♨</span>
+                Diagnostic
+            </a>
+
+            {% if is_superuser %}
+                <a href="{% url 'regle_list' %}" class="meddiag-nav-link">
+                    <span>⚙</span>
+                    Règles
+                </a>
+            {% endif %}
+        {% endif %}
+    </nav>
+
+    <div class="meddiag-actions">
+        <a href="{% url 'demo_diagnostic' %}" class="meddiag-test">
+            <span>🧪</span>
+            Tester
+        </a>
+
+        {% if request.user.is_authenticated %}
+            <a href="{% url 'logout' %}" class="meddiag-logout">
+                <span>↪</span>
+                Se déconnecter
+            </a>
+        {% else %}
+            <a href="{% url 'login' %}" class="meddiag-logout">
+                <span>↪</span>
+                S’authentifier
+            </a>
+        {% endif %}
+    </div>
+</header>
+
+<style>
+    .meddiag-navbar {
+        width: 100%;
+        max-width: 100%;
+        min-height: 105px;
+        padding: 18px 44px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 28px;
+        background: rgba(239, 247, 255, 0.94);
+        border-bottom: 1px solid rgba(37, 99, 235, 0.12);
+        box-shadow: 0 12px 35px rgba(15, 23, 42, 0.04);
+        position: sticky;
+        top: 0;
+        z-index: 999;
+        backdrop-filter: blur(14px);
+        box-sizing: border-box;
+        overflow-x: hidden;
+    }
+
+    .meddiag-brand {
+        display: flex;
+        align-items: center;
+        flex-shrink: 0;
+    }
+
+    .meddiag-brand-link {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        text-decoration: none;
+    }
+
+    .meddiag-logo {
+        width: 76px;
+        height: 76px;
+        object-fit: contain;
+        display: block;
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    .meddiag-brand-text h1 {
+        margin: 0;
+        font-size: 25px;
+        line-height: 1.1;
+        font-weight: 900;
+        color: #10233f;
+        letter-spacing: -0.5px;
+    }
+
+    .meddiag-brand-text p {
+        margin: 4px 0 0;
+        font-size: 15px;
+        font-weight: 700;
+        color: #65758f;
+        white-space: nowrap;
+    }
+
+    .meddiag-menu {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 38px;
+        flex: 1;
+        min-width: 0;
+    }
+
+    .meddiag-nav-link {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        text-decoration: none;
+        color: #152842;
+        font-size: 20px;
+        font-weight: 850;
+        transition: 0.25s ease;
+        padding: 12px 10px;
+        border-radius: 14px;
+        white-space: nowrap;
+    }
+
+    .meddiag-nav-link span {
+        font-size: 20px;
+        color: #0f4fbf;
+    }
+
+    .meddiag-nav-link:hover {
+        color: #0f63d8;
+        background: rgba(37, 99, 235, 0.08);
+        transform: translateY(-1px);
+    }
+
+    .meddiag-actions {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 12px;
+        flex-shrink: 0;
+        min-width: fit-content;
+    }
+
+    .meddiag-test {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        min-height: 54px;
+        padding: 0 28px;
+        border-radius: 999px;
+        text-decoration: none;
+        color: #0750c9;
+        font-size: 19px;
+        font-weight: 900;
+        background: #ffffff;
+        border: 2px solid #0750c9;
+        box-shadow: 0 12px 28px rgba(37, 99, 235, 0.12);
+        transition: 0.25s ease;
+        white-space: nowrap;
+        box-sizing: border-box;
+    }
+
+    .meddiag-test:hover {
+        transform: translateY(-2px);
+        background: #eff6ff;
+        color: #0750c9;
+    }
+
+    .meddiag-logout {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        min-height: 54px;
+        padding: 0 30px;
+        border-radius: 999px;
+        text-decoration: none;
+        color: white;
+        font-size: 19px;
+        font-weight: 900;
+        background: linear-gradient(135deg, #1f73f1, #0750c9);
+        box-shadow: 0 16px 35px rgba(37, 99, 235, 0.28);
+        transition: 0.25s ease;
+        white-space: nowrap;
+        box-sizing: border-box;
+    }
+
+    .meddiag-logout:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 20px 42px rgba(37, 99, 235, 0.36);
+        color: white;
+    }
+
+    .meddiag-menu-btn {
+        display: none;
+        width: 46px;
+        height: 46px;
+        border-radius: 14px;
+        border: 1px solid rgba(37, 99, 235, 0.18);
+        background: white;
+        color: #10233f;
+        font-size: 25px;
+        font-weight: 900;
+        cursor: pointer;
+        box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
+        flex-shrink: 0;
+    }
+
+    @media (max-width: 1250px) {
+        .meddiag-navbar {
+            padding: 16px 28px;
+            gap: 18px;
+        }
+
+        .meddiag-menu {
+            gap: 22px;
+        }
+
+        .meddiag-nav-link {
+            font-size: 18px;
+        }
+
+        .meddiag-test,
+        .meddiag-logout {
+            font-size: 16px;
+            padding: 0 20px;
+        }
+    }
+
+    @media (max-width: 950px) {
+        .meddiag-navbar {
+            min-height: auto;
+            padding: 14px 16px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .meddiag-logo {
+            width: 58px;
+            height: 58px;
+        }
+
+        .meddiag-brand-text h1 {
+            font-size: 22px;
+        }
+
+        .meddiag-brand-text p {
+            font-size: 12px;
+            max-width: 170px;
+            white-space: normal;
+            line-height: 1.2;
+        }
+
+        .meddiag-menu-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: auto;
+        }
+
+        .meddiag-menu {
+            display: none;
+            width: 100%;
+            flex-direction: column;
+            align-items: stretch;
+            justify-content: flex-start;
+            gap: 8px;
+            padding-top: 14px;
+            order: 4;
+        }
+
+        .meddiag-menu.active {
+            display: flex;
+        }
+
+        .meddiag-nav-link {
+            width: 100%;
+            padding: 14px 16px;
+            font-size: 17px;
+            background: white;
+            border: 1px solid rgba(37, 99, 235, 0.10);
+            box-shadow: 0 8px 18px rgba(15, 23, 42, 0.04);
+            box-sizing: border-box;
+        }
+
+        .meddiag-actions {
+            width: 100%;
+            order: 5;
+            display: none;
+            padding-top: 10px;
+            flex-direction: column;
+            gap: 10px;
+            min-width: 0;
+        }
+
+        .meddiag-menu.active ~ .meddiag-actions {
+            display: flex;
+        }
+
+        .meddiag-test,
+        .meddiag-logout {
+            width: 100%;
+            min-height: 52px;
+            font-size: 17px;
+            padding: 0 18px;
+        }
+    }
+
+    @media (max-width: 430px) {
+        .meddiag-navbar {
+            padding: 12px;
+        }
+
+        .meddiag-logo {
+            width: 50px;
+            height: 50px;
+        }
+
+        .meddiag-brand-link {
+            gap: 10px;
+        }
+
+        .meddiag-brand-text h1 {
+            font-size: 20px;
+        }
+
+        .meddiag-brand-text p {
+            font-size: 11px;
+            max-width: 145px;
+        }
+
+        .meddiag-menu-btn {
+            width: 42px;
+            height: 42px;
+            font-size: 22px;
+        }
+    }
+</style>
+
+<script>
+    function toggleMeddiagMenu() {
+        const menu = document.getElementById("meddiagMenu");
+        if (menu) {
+            menu.classList.toggle("active");
+        }
+    }
+</script>

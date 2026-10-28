@@ -1,0 +1,289 @@
+{% extends 'main.html' %}
+{% load static %}
+{% block title %}Ajout dossier{% endblock %}
+{% block css %}
+<link rel="stylesheet" href="{% static 'css/ajout_dossier.css' %}">
+<link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700" rel="stylesheet">
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.5.0/css/all.css"
+    integrity="sha384-B4dIYHKNBt8Bc12p+WXckhzcICo0wtJAoU8YZTY5qE0Id1GSseTk6S+L3BlXeVIU" crossorigin="anonymous">
+{% endblock %}
+{% block content %}
+
+<form method="post" action="{% url 'modifier_dossier' id %}" class="form-container">
+    {% csrf_token %}
+    <input type="hidden" name="patient" value="{{ patient.id }}">
+    <div class="banner">
+        <h1>Ajout dossier du patient {{patient.nom}} {{patient.prenom}}</h1>
+    </div>
+
+    <div class="concept">
+        <div class="question">
+            <p>Antécédents familiaux:</p>
+            <div class="question-answer">
+                <div>
+                    <input type="checkbox" name="antFam" id="id_asthme" value="Asthme" {% if 'Asthme' in existing_values.antFam %}checked{% endif %}>
+                    <label for="id_asthme" class="checkbox"><span>Asthme</span></label>
+                </div>
+            </div>
+        </div>
+        <div class="question">
+            <label for="id_antFam">Antécédents personnels:</label><br>
+            <div class="question-answer">
+                <div>
+                    <input type="checkbox" name="antPers" id="id_antPers">
+                    <label for="id_antPers" class="checkbox"></label>
+                </div>
+            </div>
+        </div>
+        <div class="question">
+            <label for="id_atopie">Atopie:</label><br>
+            <div class="question-answer">
+                <div>
+                    <input type="checkbox" name="atopie" id="id_atopie_eczema" value="Eczema" {% if 'Eczema' in existing_values.atopie %}checked{% endif %}>
+                    <label for="id_atopie_eczema" class="checkbox"><span>Eczema</span></label>
+                </div>
+                <div>
+                    <input type="checkbox" name="atopie" id="id_atopie_rhinite" value="Rhinite" {% if 'Rhinite' in existing_values.atopie %}checked{% endif %}>
+                    <label for="id_atopie_rhinite" class="checkbox"><span>Rhinite</span></label><br>
+                </div>
+                <div>
+                    <input type="checkbox" name="atopie" id="id_atopie_conjonctivite" value="Conjonctivite" {% if 'Conjonctivite' in existing_values.atopie %}checked{% endif %}>
+                    <label for="id_atopie_conjonctivite" class="checkbox"><span>Conjonctivite</span></label>
+                </div>
+            </div>
+        </div>
+        <div class="question">
+            <label for="id_efr">EFR:</label><br>
+            <div class="question-answer">
+                <div>
+                    <input type="checkbox" name="efr" id="id_efr_tvo_reversible"
+                        value="TVO réversible sous bronchodilatateur" {% if 'TVO réversible sous bronchodilatateur' in existing_values.efr %}checked{% endif %}>
+                    <label for="id_efr_tvo_reversible" class="checkbox"><span>TVO réversible sous
+                            bronchodilatateur</span></label><br>
+                </div>
+                <div>
+                    <input type="checkbox" name="efr" id="id_efr_tvo_non_reversible"
+                        value="TVO non réversible après bronchodilatateur" {% if 'TVO non réversible après bronchodilatateur' in existing_values.efr %}checked{% endif %}>
+                    <label for="id_efr_tvo_non_reversible" class="checkbox"><span>TVO non réversible après
+                            bronchodilatateur</span></label><br>
+                </div>
+                <div>
+                    <input type="checkbox" name="efr" id="id_efr_trouble_ventilatoire"
+                        value="Trouble ventilatoire restrictif" {% if 'Trouble ventilatoire restrictif' in existing_values.efr %}checked{% endif %}>
+                    <label for="id_efr_trouble_ventilatoire" class="checkbox"><span>Trouble ventilatoire
+                            restrictif</span></label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="question">
+        <label for="id_examcli">Examen clinique:</label><br>
+        <div class="question-answer">
+
+            <div>
+                <input type="checkbox" id="id_rales" {% if 'Râles' in existing_values.examcli %}checked{% endif %}>
+                <label for="id_rales" class="checkbox"><span>Râles</span></label><br>
+
+                <div class="additional-rales-options" style="margin-left: 20px;">
+                    <select name="examcli" id="id_rales_additional" style="display: none;">
+                        <option value="">---------</option>
+                        <option value="Râles sibilants" {% if 'Râles sibilants' in existing_values.examcli %}selected{% endif %}>Râles sibilants</option>
+                        <option value="Râles ronflants" {% if 'Râles ronflants' in existing_values.examcli %}selected{%  endif %}>Râles ronflants</option>
+                        <option value="Râles crépitants" {% if 'Râles crépitants' in existing_values.examcli %}selected{% endif %}>Râles crépitants</option>
+                    </select>
+                </div>
+
+                <input type="checkbox" id="toggle-additional-rales-options" style="display: none;">
+            </div>
+
+
+
+            <div>
+                <input type="checkbox" name="examcli" id="id_diminution" value="Diminution de murmure vésiculaire" {% if 'Diminution de murmure vésiculaire' in existing_values.examcli %}checked{% endif %}>
+                <label for="id_diminution" class="checkbox"><span>Diminution de murmure vésiculaire</span></label><br>
+            </div>
+            <div>
+                <input type="checkbox" name="examcli" id="id_expiration" value="Expiration à lèvres pincée" {%  if 'Expiration à lèvres pincée' in existing_values.examcli %}checked{% endif %}>
+                <label for="id_expiration" class="checkbox"><span>Expiration à lèvres pincée</span></label><br>
+            </div>
+            <div>
+                <input type="checkbox" name="examcli" id="id_hoover" value="Signe de Hoover" {% if 'Signe de Hoover' in existing_values.examcli %}checked{% endif %}>
+                <label for="id_hoover" class="checkbox"><span>Signe de Hoover</span></label><br>
+            </div>
+            <div>
+                <input type="checkbox" name="examcli" id="id_cyanose" value="Cyanose" {% if 'Cyanose' in  existing_values.examcli %}checked{% endif %}>
+                <label for="id_cyanose" class="checkbox"><span>Cyanose</span></label><br>
+            </div>
+            <div>
+                <input type="checkbox" name="examcli" id="id_resp_siff" value="Respiration sifflante" {%  if 'Respiration sifflante' in existing_values.examcli %}checked{% endif %}>
+                <label for="id_resp_siff" class="checkbox"><span>Respiration sifflante</span></label><br>
+            </div>
+            <div>
+                <input type="checkbox" name="examcli" id="id_hypo" value="Hypocratisme digital" {% if 'Hypocratisme digital' in existing_values.examcli %}checked{% endif %}>
+                <label for="id_hypo" class="checkbox"><span>Hypocratisme digital</span></label>
+            </div>
+        </div>
+    </div>
+    <div class="question">
+
+        <label for="id_habitVie">Habitude de vie:</label><br>
+        <div class="question-answer">
+            <div>
+                <input type="checkbox" id="id_tabac" {% if 'Tabac' in existing_values.habitVie %}checked{% endif %}>
+                <label for="id_tabac" class="checkbox"><span>Tabac</span></label><br>
+
+                <div class="additional-tabac-options" style="margin-left: 20px;">
+                    <select name="habitVie" id="id_tabac_additional" style="display: none;">
+                        <option value="">---------</option>  
+                        <option values="Tabac actif"{% if 'Tabac actif' in existing_values.habitVie %}selected{% endif %}>Tabac actif</option>
+                        <option value="Tabac passif" {% if 'Tabac passif' in existing_values.habitVie %}selected{% endif %}>Tabac passif</option>
+                        <option value="Tabac sevré" {% if 'Tabac sevré' in existing_values.habitVie %}selected{% endif %}>Tabac sevré</option>
+                    </select>
+                </div>
+                <input type="checkbox" id="toggle-additional-tabac-options" style="display: none;">
+            </div>
+            <div>
+                <input type="checkbox" name="habitVie" id="id_biomasse" value="Exposition à la biomasse" {%  if 'Exposition à la biomasse' in existing_values.habitVie %}checked{% endif %}>
+                <label for="id_biomasse" class="checkbox"><span>Exposition à la biomasse</span></label><br>
+            </div>
+            <input type="checkbox" name="habitVie" id="id_contact" value="Contact animal et aviare" {%  if 'Contact animal et aviare' in existing_values.habitVie %}checked{% endif %}>
+            <label for="id_contact" class="checkbox"><span>Contact animal et aviare</span></label><br>
+        </div>
+    </div>
+    <div class="item">
+        <label for="id_poids">Poids</label><br>
+
+        <input type="number" name="poids" id="id_poids" value="{{ existing_values.poids }}">
+    </div>
+    <div class="item">
+        <label for="id_taille">Taille</label><br>
+        <input type="number" step="0.01" name="taille" id="id_taille" value="{{ existing_values.taille }}">
+    </div>
+    <div class="question">
+        <label for="id_radio">Radiographie</label><br>
+        <div class="question-answer">
+            <div>
+                <input type="checkbox" name="radio" id="id_distention" value="Distension thoracique" {%  if 'Distension thoracique' in existing_values.radio %}checked{% endif %}>
+                <label for="id_distention" class="checkbox"><span>Distension thoracique</span></label>
+            </div>
+            <div>
+                <input type="checkbox" name="radio" id="id_rarefaction" value="Raréfaction de la vascularisation" {%if 'Raréfaction de la vascularisation' in existing_values.radio %}checked{% endif %}>
+                <label for="id_rarefaction" class="checkbox"><span>Raréfaction de la vascularisation</span></label>
+            </div>
+            <div>
+                <input type="checkbox" name="radio" id="id_synd_inters" value="Syndrome interstitiel" {%if 'Syndrome interstitiel' in existing_values.radio %}checked{% endif %}>
+                <label for="id_synd_inters" class="checkbox"><span>Syndrome interstitiel</span></label>
+            </div>
+            <div>
+                <input type="checkbox" name="radio" id="id_normal" value="Normale" {% if 'Normale' in existing_values.radio %}checked{% endif %}>
+                <label for="id_normal" class="checkbox"><span>Normale</span></label>
+            </div>
+        </div>
+    </div>
+    <div class="question">
+        <label for="id_signe">Signe</label><br>
+        <div class="question-answer">
+            <div>
+                <input type="checkbox" name="signe" id="id_fievre" value="Fièvre" {% if 'Fièvre' in existing_values.signe %}checked{% endif %}>
+                <label for="id_fievre" class="checkbox"><span>Fièvre</span></label>
+            </div>
+            <div>
+                <input type="checkbox" name="signe" id="id_asthenie" value="Asthénie" {% if 'Asthénie' in  existing_values.signe %}checked{% endif %}>
+                <label for="id_asthenie" class="checkbox"><span>Asthénie</span></label>
+            </div>
+            <div>
+                <input type="checkbox" name="signe" id="id_perte_poids" value="Perte de poids" {% if 'Perte de poids' in existing_values.signe %}checked{% endif %}>
+                <label for="id_perte_poids" class="checkbox"><span>Perte de poids</span></label>
+            </div>
+        </div>
+    </div>
+    <div class="question">
+        <label for="id_symptome">Symptome</label><br>
+        <div class="question-answer">
+            <div>
+                <input type="checkbox" id="id_dyspnee" {% if 'Dyspnée' in existing_values.symptome %}checked{% endif %}>
+                <label for="id_dyspnee" class="checkbox"><span>Dyspnée</span></label>
+                <div class="additional-dyspnee-options" style="margin-left: 20px;">
+                    <select name="symptome" id="id_dyspnee_additional" style="display: none;">
+                        <option value="">---------</option>
+                        <option value="Dyspnée" {% if 'Dyspnée' in existing_values.symptome %}selected{% endif %}>
+                            Dyspnée</option>
+                        <option value="Dyspnée à l'effort" {% if "Dyspnée à l'effort" in existing_values.symptome  %}selected{% endif %}>Dyspnée à l'effort</option>
+                        <option value="Dyspnée au repos" {% if 'Dyspnée au repos' in existing_values.symptome %}selected{% endif %}>Dyspnée au repos</option>
+                    </select>
+                </div>
+                <input type="checkbox" id="toggle-additional-dyspnee-options" style="display: none;">
+            </div>
+            <div>
+                <input type="checkbox" name="symptome" id="id_sifflement" value="Sifflement" {% if 'Sifflement' in  existing_values.symptome %}checked{% endif %}>
+                <label for="id_sifflement" class="checkbox"><span>Sifflement</span></label>
+            </div>
+            <div>
+                <input type="checkbox" name="symptome" id="id_oppression" value="Oppression thoracique" {%  if 'Oppression thoracique' in existing_values.symptome %}checked{% endif %}>
+                <label for="id_oppression" class="checkbox"><span>Oppression thoracique</span></label>
+            </div>
+            <div>
+                <input type="checkbox" id="id_toux" {% if 'Toux' in existing_values.symptome %}checked{% endif %}>
+                <label for="id_toux" class="checkbox"><span>Toux</span></label>
+                <div class="additional-toux-options" style="margin-left: 20px;">
+                    <select name="symptome" id="id_toux_additional" style="display: none;">
+                        <option value="">---------</option>
+                        <option value="Toux sèche" {% if 'Toux sèche' in existing_values.symptome %}selected{% endif %}> Toux sèche</option>
+                        <option value="Toux productive" {% if 'Toux productive' in existing_values.symptome %}selected{%  endif %}>Toux productive</option>
+                    </select>
+                </div>
+                <input type="checkbox" id="toggle-additional-toux-options" style="display: none;">
+            </div>
+            <div>
+                <input type="checkbox" name="symptome" id="id_infect_bronch" value="Infections bronchiques" {% if 'Infections bronchiques' in existing_values.symptome %}checked{% endif %}>
+                <label for="id_infect_bronch" class="checkbox"><span>Infections bronchiques</span></label>
+            </div>
+            <div>
+                <input type="checkbox" name="symptome" id="id_crachat" value="Crachat de sang" {% if 'Crachat de sang' in existing_values.symptome %}checked{% endif %}>
+                <label for="id_crachat" class="checkbox"><span>Crachat de sang</span></label>
+            </div>
+            <div>
+                <input type="checkbox" name="symptome" id="id_sueurs_noct" value="Sueurs nocturnes" {% if 'Sueurs nocturnes' in existing_values.symptome %}checked{% endif %}>
+                <label for="id_sueurs_noct" class="checkbox"><span>Sueurs nocturnes</span></label>
+            </div>
+        </div>
+    </div>
+    <div class="question">
+        <label for="id_tdm">TDM</label><br>
+        <div class="question-answer">
+            <div>
+                <input type="checkbox" name="tdm" id="id_ddb_cylindre" value="Dilatation de bronches cylindriques" {% if 'Dilatation de bronches cylindriques' in existing_values.symptome %}checked{% endif %}>
+                <label for="id_ddb_cylindre" class="checkbox"><span>Dilatation de bronches cylindriques</span></label>
+            </div>
+            <div>
+                <input type="checkbox" name="tdm" id="id_ddb_kyste" value="Dilatation de bronches kystiques" {% if 'Dilatation de bronches kystiques' in existing_values.symptome %}checked{% endif %}>
+                <label for="id_ddb_kyste" class="checkbox"><span>Dilatation de bronches kystiques</span></label>
+            </div>
+            <div>
+                <input type="checkbox" name="tdm" id="id_ddb_variq" value="Dilatation de bronches variqueuses" {% if 'Dilatation de bronches variqueuses' in existing_values.symptome %}checked{% endif %}>
+                <label for="id_ddb_variq" class="checkbox"><span>Dilatation de bronches variqueuses</span></label>
+            </div>
+        </div>
+    </div>
+
+    {% if form.errors %}
+    <div class="alert alert-danger">
+        <ul>
+            {% for field in form %}
+            {% for error in field.errors %}
+            <li>{{ field.label }}: {{ error }}</li>
+            {% endfor %}
+            {% endfor %}
+        </ul>
+    </div>
+
+    {% endif %}
+    <button type="submit">Submit</button>
+</form>
+
+{% block script %}
+<script type="text/javascript" src='{% static "js/script_modifier_dossier.js" %}'></script>
+{% endblock %}
+
+{% endblock %}
